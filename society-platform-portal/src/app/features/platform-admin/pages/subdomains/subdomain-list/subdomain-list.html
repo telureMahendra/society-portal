@@ -1,0 +1,64 @@
+<div class="page-header">
+    <div>
+        <h1>Subdomain Manager</h1>
+        <p>Monitor and validate subdomain allocations across the platform.</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card p-4 bg-light border-0">
+            <h3>Validate Subdomain</h3>
+            <div class="d-flex gap-3 align-items-center mt-3">
+                <div class="input-group" style="max-width: 400px;">
+                    <input type="text" #subdomainInput class="form-control" placeholder="Enter subdomain name...">
+                    <span class="input-group-text">.localhost</span>
+                </div>
+                <button class="btn btn-secondary" (click)="checkAvailability(subdomainInput.value)">Check
+                    Availability</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card p-0 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Subdomain</th>
+                    <th>Type</th>
+                    <th>Linked Entity</th>
+                    <th>Created At</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let sub of subdomains">
+                    <td>
+                        <code class="subdomain-tag">{{ sub.subdomain }}</code>
+                    </td>
+                    <td>
+                        <span class="type-badge" [ngClass]="sub.type.toLowerCase()">{{ sub.type }}</span>
+                    </td>
+                    <td>{{ sub.linkedEntityName }}</td>
+                    <td>{{ sub.createdAt | date }}</td>
+                    <td>
+                        <span class="status-indicator" [ngClass]="sub.status.toLowerCase()">
+                            {{ sub.status }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-icon" title="View Entity">
+                            <i class="icon-link"></i>
+                        </button>
+                        <button class="btn btn-icon danger" title="Release Subdomain" *ngIf="sub.status === 'CONFLICT'">
+                            <i class="icon-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

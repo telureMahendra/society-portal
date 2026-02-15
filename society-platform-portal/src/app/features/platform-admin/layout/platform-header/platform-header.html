@@ -1,0 +1,33 @@
+<header class="header">
+    <div class="header-left">
+        <h2 class="page-title">{{ currentPageTitle }}</h2>
+    </div>
+
+    <div class="header-right">
+        <div class="search-box">
+            <i class="icon-search"></i>
+            <input type="text" placeholder="Search...">
+        </div>
+
+        <div class="user-menu" (click)="toggleMenu()">
+            <div class="user-info">
+                <span class="user-name">{{ userName }}</span>
+                <span class="user-role">Platform Admin</span>
+            </div>
+            <div class="avatar">PA</div>
+
+            <div class="dropdown-menu" *ngIf="isMenuOpen">
+                <a class="dropdown-item">
+                    <i class="icon-user"></i> Profile
+                </a>
+                <a class="dropdown-item">
+                    <i class="icon-settings"></i> Settings
+                </a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item logout" (click)="logout()">
+                    <i class="icon-logout"></i> Logout
+                </a>
+            </div>
+        </div>
+    </div>
+</header>

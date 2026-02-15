@@ -1,0 +1,106 @@
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    background-color: #1e293b;
+    color: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+    position: relative;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+
+    &.collapsed {
+        width: 70px;
+
+        .sidebar-header .brand-name,
+        .nav-label,
+        .nav-divider {
+            display: none;
+        }
+
+        .logo img {
+            width: 40px;
+        }
+    }
+}
+
+.sidebar-header {
+    padding: 1.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    .logo img {
+        width: 32px;
+        height: auto;
+    }
+
+    .brand-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 1.5rem 0.5rem;
+    overflow-y: auto;
+}
+
+.nav-divider {
+    padding: 1rem 1rem 0.5rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.05em;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.25rem;
+    color: #cbd5e1;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    gap: 1rem;
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: #fff;
+    }
+
+    &.active {
+        background-color: #3b82f6;
+        color: #fff;
+    }
+
+    i {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.toggle-btn {
+    position: absolute;
+    top: 1.5rem;
+    right: -12px;
+    width: 24px;
+    height: 24px;
+    background-color: #334155;
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
