@@ -1,0 +1,65 @@
+<div class="dashboard-header">
+    <h1>Platform Overview</h1>
+    <p>Global statistics across all federations and societies.</p>
+</div>
+
+<div class="stats-grid" *ngIf="summary">
+    <div class="stat-card">
+        <div class="stat-icon federations">
+            <i class="icon-federation"></i>
+        </div>
+        <div class="stat-content">
+            <span class="stat-label">Federations</span>
+            <span class="stat-value">{{ summary.totalFederations }}</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon societies">
+            <i class="icon-society"></i>
+        </div>
+        <div class="stat-content">
+            <span class="stat-label">Societies</span>
+            <span class="stat-value">{{ summary.totalSocieties }}</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon users">
+            <i class="icon-users"></i>
+        </div>
+        <div class="stat-content">
+            <span class="stat-label">Active Users</span>
+            <span class="stat-value">{{ summary.totalActiveUsers }}</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon flats">
+            <i class="icon-flats"></i>
+        </div>
+        <div class="stat-content">
+            <span class="stat-label">Total Flats</span>
+            <span class="stat-value">{{ summary.totalActiveFlats }}</span>
+        </div>
+    </div>
+
+    <div class="stat-card status">
+        <div class="stat-icon" [ngClass]="summary.platformHealthStatus.toLowerCase()">
+            <i class="icon-health"></i>
+        </div>
+        <div class="stat-content">
+            <span class="stat-label">Platform Health</span>
+            <span class="stat-value status-text" [ngClass]="summary.platformHealthStatus.toLowerCase()">
+                {{ summary.platformHealthStatus }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="recent-activity-container">
+    <div class="card p-4">
+        <h3>System Status</h3>
+        <p>All subsystems are operational. No critical alerts reported.</p>
+    </div>
+</div>

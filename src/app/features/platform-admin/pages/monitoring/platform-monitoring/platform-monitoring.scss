@@ -1,0 +1,124 @@
+.monitoring-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.status-glow {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        animation: glow 2s infinite;
+    }
+
+    &.healthy {
+        background-color: #22c55e;
+
+        &::after {
+            background-color: #22c55e;
+        }
+    }
+
+    &.warning {
+        background-color: #f59e0b;
+
+        &::after {
+            background-color: #f59e0b;
+        }
+    }
+}
+
+@keyframes glow {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(3);
+        opacity: 0;
+    }
+}
+
+.big {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &.warning {
+        background-color: #fffbeb;
+    }
+
+    .alert-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    &.warning .alert-icon {
+        color: #f59e0b;
+    }
+
+    &.info .alert-icon {
+        color: #3b82f6;
+    }
+
+    .alert-content {
+        flex: 1;
+    }
+
+    .alert-message {
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 0.25rem;
+    }
+
+    .alert-time {
+        font-size: 0.75rem;
+        color: #94a3b8;
+    }
+}
+
+.health-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+
+    &.healthy {
+        color: #22c55e;
+    }
+}
+
+.progress {
+    height: 8px;
+    background-color: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+}

@@ -1,0 +1,44 @@
+<aside class="sidebar" [class.collapsed]="isCollapsed">
+    <div class="sidebar-header">
+        <div class="logo">
+            <img src="/logo.jpg" alt="EstatePilot" style="max-height: 48px; border-radius: 4px;">
+        </div>
+        <span class="brand-name" *ngIf="!isCollapsed"
+            style="font-family: 'Outfit', sans-serif; font-weight: 800; color: #1e293b; letter-spacing: -0.02em;">EstatePilot</span>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a routerLink="/platform/dashboard" routerLinkActive="active" class="nav-item" title="Dashboard">
+            <i class="icon-dashboard"></i>
+            <span class="nav-label" *ngIf="!isCollapsed">Dashboard</span>
+        </a>
+
+        <div class="nav-divider">Management</div>
+
+        <a routerLink="/platform/federations" routerLinkActive="active" class="nav-item" title="Federations">
+            <i class="icon-federation"></i>
+            <span class="nav-label" *ngIf="!isCollapsed">Federations</span>
+        </a>
+
+        <a routerLink="/platform/societies" routerLinkActive="active" class="nav-item" title="Societies">
+            <i class="icon-society"></i>
+            <span class="nav-label" *ngIf="!isCollapsed">Societies</span>
+        </a>
+
+        <a routerLink="/platform/subdomains" routerLinkActive="active" class="nav-item" title="Subdomains">
+            <i class="icon-subdomain"></i>
+            <span class="nav-label" *ngIf="!isCollapsed">Subdomains</span>
+        </a>
+
+        <div class="nav-divider">System</div>
+
+        <a routerLink="/platform/monitoring" routerLinkActive="active" class="nav-item" title="Monitoring">
+            <i class="icon-monitoring"></i>
+            <span class="nav-label" *ngIf="!isCollapsed">Monitoring</span>
+        </a>
+    </nav>
+
+    <button class="toggle-btn" (click)="toggleSidebar()">
+        <i [class.icon-chevron-left]="!isCollapsed" [class.icon-chevron-right]="isCollapsed"></i>
+    </button>
+</aside>
