@@ -24,7 +24,8 @@ export class FederationList implements OnInit {
   }
 
   loadFederations() {
-    this.platformService.getFederations().subscribe({
+    this.isLoading = true;
+    this.platformService.getFederations(0, 50, this.statusFilter).subscribe({
       next: (response) => {
         // Assuming response is paginated or direct list
         this.federations = response.content || response;
@@ -58,7 +59,7 @@ export class FederationList implements OnInit {
   }
 
   onFilterChange() {
-    this.applyFilters();
+    this.loadFederations();
   }
 
   openCreateModal() {

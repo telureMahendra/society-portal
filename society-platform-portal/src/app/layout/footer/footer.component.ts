@@ -2,15 +2,15 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
-    selector: 'app-footer',
-    standalone: true,
-    imports: [CommonModule],
-    template: `
+  selector: 'app-footer',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     <footer class="app-footer">
-      <p>&copy; 2024 Society Platform. All rights reserved.</p>
+      <p>&copy; 2026 Society Platform. All rights reserved.</p>
     </footer>
   `,
-    styles: [`
+  styles: [`
     .app-footer {
       padding: 1rem;
       text-align: center;

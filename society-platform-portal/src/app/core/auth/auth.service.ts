@@ -9,6 +9,7 @@ export interface User {
     username: string; // or mobileNumber
     roles: string[];
     societyId?: number;
+    globalRole?: string;
 }
 
 export interface AuthResponse {
@@ -20,6 +21,8 @@ export interface AuthResponse {
     subdomain?: string;
     username: string;
     userId: number;
+    id?: number; // Some endpoints return id instead of userId
+    globalRole?: string;
     tokenType?: string;
     refreshToken?: string;
     // Legacy fields
@@ -56,11 +59,14 @@ export class AuthService {
     login(credentials: any): Observable<AuthResponse> {
         let apiUrl = `${environment.apiBaseUrl}/user/auth/login`;
         const host = window.location.hostname;
-        const isPlatformHost = host.startsWith('platform') || host.startsWith('admin');
+        const isPlatformHost = host.startsWith('platform') || host.startsWith('admin') || host === 'localhost' || host === '127.0.0.1';
+        const isSocietySubdomain = !isPlatformHost && host.split('.').length >= 2;
 
         // Check if on platform subdomain
         if (isPlatformHost) {
             apiUrl = `${environment.apiBaseUrl}/platform/login`;
+        } else if (isSocietySubdomain) {
+            apiUrl = `${environment.apiBaseUrl}/society/auth/login`;
         }
 
         return this.http.post<any>(apiUrl, {
@@ -74,10 +80,11 @@ export class AuthService {
                 const roles = this.extractRoles(response, token, isPlatformHost);
 
                 const user: User = {
-                    id: response.userId || 0, // Using response.userId
+                    id: response.userId || response.id || 0,
                     username: response.username || credentials.username,
                     roles,
-                    societyId: response.societyId
+                    societyId: response.societyId,
+                    globalRole: response.globalRole
                 };
 
                 console.log('AuthService: Mapped user:', user);
@@ -115,7 +122,8 @@ export class AuthService {
                     id: Number(raw.id) || 0,
                     username: raw.username || '',
                     roles: Array.isArray(raw.roles) ? raw.roles.filter((r): r is string => typeof r === 'string' && r.length > 0) : [],
-                    societyId: raw.societyId
+                    societyId: raw.societyId,
+                    globalRole: raw.globalRole
                 };
                 this.userSubject.next(normalized);
             } catch {

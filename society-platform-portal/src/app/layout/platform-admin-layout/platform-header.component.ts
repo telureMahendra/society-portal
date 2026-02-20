@@ -4,17 +4,17 @@ import { AuthService } from '../../core/auth/auth.service';
 import { Router } from '@angular/router';
 
 @Component({
-    selector: 'app-platform-header',
-    standalone: true,
-    imports: [CommonModule],
-    template: `
+  selector: 'app-platform-header',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     <header class="platform-header">
       <div class="header-left">
         <button class="toggle-btn" (click)="toggleSidebar.emit()">
           <i class="fas fa-bars"></i>
         </button>
         <div class="brand">
-          <span class="platform-name">Society Platform Portal</span>
+          <span class="platform-name">EstatePilot</span>
           <span class="badge">Admin</span>
         </div>
       </div>
@@ -32,7 +32,7 @@ import { Router } from '@angular/router';
       </div>
     </header>
   `,
-    styles: [`
+  styles: [`
     .platform-header {
       height: 64px;
       background-color: #ffffff;
@@ -133,11 +133,11 @@ import { Router } from '@angular/router';
   `]
 })
 export class PlatformHeaderComponent {
-    @Output() toggleSidebar = new EventEmitter<void>();
-    authService = inject(AuthService);
-    private router = inject(Router);
+  @Output() toggleSidebar = new EventEmitter<void>();
+  authService = inject(AuthService);
+  private router = inject(Router);
 
-    logout() {
-        this.authService.logout();
-    }
+  logout() {
+    this.authService.logout();
+  }
 }

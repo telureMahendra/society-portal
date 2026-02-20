@@ -16,9 +16,9 @@ export class BrandingService {
 
     private readonly defaultBranding: SocietyBranding = {
         societyId: 0,
-        name: 'Society Platform',
+        name: 'EstatePilot',
         subdomain: '',
-        logoUrl: '/assets/logo.png',
+        logoUrl: '/logo.jpg',
         bannerUrl: '/assets/banner.jpg',
         theme: {
             primaryColor: '#3f51b5',
@@ -43,27 +43,25 @@ export class BrandingService {
 
     public loadBranding(): Observable<SocietyBranding> {
         const subdomain = this.subdomainService.getSubdomain();
+        const isPlatformSubdomain = subdomain === 'platform' || subdomain === 'admin';
 
-        if (!subdomain) {
+        if (!subdomain || isPlatformSubdomain) {
             console.log('No subdomain detected, loading default branding.');
             this.applyBranding(this.defaultBranding);
             return of(this.defaultBranding);
         }
 
-        // Use the public society profile endpoint.
-        // The X-Subdomain header (injected by interceptor) tells the backend which society to load.
         const apiUrl = `${environment.apiBaseUrl}/public/society`;
 
         return this.http.get<any>(apiUrl).pipe(
             tap(response => {
-                // Map API response to SocietyBranding model
                 const branding: SocietyBranding = {
-                    societyId: 0, // Not provided in public profile
+                    societyId: 0,
                     name: response.name,
                     subdomain: response.subdomain,
-                    logoUrl: response.logoUrl || '/assets/logo.png',
+                    logoUrl: response.logoUrl || '/logo.jpg',
                     bannerUrl: response.bannerUrl || '/assets/banner.jpg',
-                    theme: this.defaultBranding.theme, // Theme not yet in API, using default
+                    theme: this.defaultBranding.theme,
                     featureFlags: this.defaultBranding.featureFlags
                 };
 
@@ -81,7 +79,6 @@ export class BrandingService {
     private applyBranding(branding: SocietyBranding): void {
         this.brandingSubject.next(branding);
 
-        // 1. Apply CSS Variables
         const root = this.document.documentElement;
         if (branding.theme) {
             root.style.setProperty('--primary-color', branding.theme.primaryColor);
@@ -91,10 +88,7 @@ export class BrandingService {
             root.style.setProperty('--background-color', branding.theme.backgroundColor || '#fff');
         }
 
-        // 2. Update Title
         this.titleService.setTitle(branding.name);
-
-        // 3. Update Favicon (Optional, more complex in Angular but possible)
         this.updateFavicon(branding.logoUrl);
     }
 

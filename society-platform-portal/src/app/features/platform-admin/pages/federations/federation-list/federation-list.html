@@ -37,34 +37,41 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let fed of filteredFederations">
-                    <td>
-                        <div class="fw-bold">{{ fed.name }}</div>
-                    </td>
-                    <td><code>{{ fed.code }}</code></td>
-                    <td>{{ fed.subdomain }}.localhost</td>
-                    <td>{{ fed.societiesCount }}</td>
-                    <td>{{ fed.createdAt | date }}</td>
-                    <td>
-                        <span class="badge" [ngClass]="fed.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'">
-                            {{ fed.status }}
-                        </span>
-                    </td>
-                    <td class="text-end">
-                        <button class="btn btn-icon" title="Edit">
-                            <i class="icon-edit"></i>
-                        </button>
-                        <button class="btn btn-icon" [title]="fed.status === 'ACTIVE' ? 'Deactivate' : 'Activate'"
-                            (click)="toggleStatus(fed)">
-                            <i [class]="fed.status === 'ACTIVE' ? 'icon-toggle-on' : 'icon-toggle-off'"></i>
-                        </button>
-                    </td>
-                </tr>
-                <tr *ngIf="filteredFederations.length === 0 && !isLoading">
+                <tr *ngIf="isLoading">
                     <td colspan="7" class="text-center p-5 text-muted">
-                        No federations found matching your criteria.
+                        <i class="fas fa-spinner fa-spin"></i> Loading federations...
                     </td>
                 </tr>
+                <ng-container *ngIf="!isLoading">
+                    <tr *ngFor="let fed of filteredFederations">
+                        <td>
+                            <div class="fw-bold">{{ fed.name }}</div>
+                        </td>
+                        <td><code>{{ fed.code }}</code></td>
+                        <td>{{ fed.subdomain }}.localhost</td>
+                        <td>{{ fed.societiesCount }}</td>
+                        <td>{{ fed.createdAt | date }}</td>
+                        <td>
+                            <span class="badge" [ngClass]="fed.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'">
+                                {{ fed.status }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-icon" title="Edit">
+                                <i class="icon-edit"></i>
+                            </button>
+                            <button class="btn btn-icon" [title]="fed.status === 'ACTIVE' ? 'Deactivate' : 'Activate'"
+                                (click)="toggleStatus(fed)">
+                                <i [class]="fed.status === 'ACTIVE' ? 'icon-toggle-on' : 'icon-toggle-off'"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="filteredFederations.length === 0 && !isLoading">
+                        <td colspan="7" class="text-center p-5 text-muted">
+                            No federations found matching your criteria.
+                        </td>
+                    </tr>
+                </ng-container>
             </tbody>
         </table>
     </div>

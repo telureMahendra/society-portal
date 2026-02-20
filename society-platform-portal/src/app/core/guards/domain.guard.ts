@@ -19,7 +19,8 @@ export const domainGuard: CanActivateFn = (route, state) => {
     // Also prevent PLATFORM_ADMIN from accessing society pages even on other domains (if they somehow logged in)
     const authService = inject(AuthService);
     const user = authService.currentUserValue;
-    if (user && user.roles.includes('PLATFORM_ADMIN')) {
+    if (user && (user.roles.includes('PLATFORM_ADMIN') || user.globalRole === 'PLATFORM_ADMIN')) {
+        console.log('DomainGuard: Blocking PLATFORM_ADMIN from society page');
         return router.createUrlTree(['/platform/dashboard']);
     }
 

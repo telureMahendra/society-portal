@@ -16,11 +16,23 @@ export interface Federation {
 export interface Society {
     id: number;
     name: string;
+    code?: string;
     federationName?: string;
     subdomain?: string;
+    adminNames?: string[];
+    description?: string;
+    address?: string;
     city?: string;
+    state?: string;
+    country?: string;
+    pincode?: string;
+    totalBuildings?: number;
     totalFlats?: number;
-    status: 'ACTIVE' | 'INACTIVE' | 'DRAFT';
+    amenities?: string[];
+    galleryUrls?: string[];
+    isTownship?: boolean;
+    status: 'ACTIVE' | 'INACTIVE' | 'DRAFT' | 'SUSPENDED';
+    createdAt?: string;
 }
 
 export interface SocietyOnboardingRequest {
@@ -34,6 +46,10 @@ export interface SocietyOnboardingRequest {
     state?: string;
     country?: string;
     pincode?: string;
+    totalBuildings?: number;
+    totalFlats?: number;
+    amenities?: string[];
+    galleryUrls?: string[];
     isTownship: boolean;
 }
 
@@ -129,9 +145,16 @@ export class PlatformAdminService {
 
         return this.http.post<SocietyOnboardingResponse>(`${this.apiUrl}/societies`, formData);
     }
-
     updateSocietyStatus(id: number, status: string): Observable<void> {
         return this.http.patch<void>(`${this.apiUrl}/societies/${id}/status`, { status });
+    }
+
+    getSociety(id: number): Observable<Society> {
+        return this.http.get<Society>(`${this.apiUrl}/societies/${id}`);
+    }
+
+    assignSocietyAdmin(societyId: number, data: any): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/societies/${societyId}/admin`, data);
     }
 
     // Subdomains

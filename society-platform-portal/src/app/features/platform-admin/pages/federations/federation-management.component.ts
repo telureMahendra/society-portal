@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PlatformAdminService, Federation } from '../../services/platform-admin.service';
 import { ApiError } from '../../../../core/interceptors/api-error.interceptor';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
-    selector: 'app-federation-management',
-    standalone: true,
-    imports: [CommonModule, ReactiveFormsModule],
-    template: `
+  selector: 'app-federation-management',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  template: `
     <div class="page-container">
       <div class="page-header">
         <h1 class="page-title">Federation Management</h1>
@@ -46,7 +47,13 @@ import { ApiError } from '../../../../core/interceptors/api-error.interceptor';
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let fed of federations">
+            <tr *ngIf="loading">
+              <td colspan="7" class="text-center p-4">
+                <i class="fas fa-spinner fa-spin"></i> Loading federations...
+              </td>
+            </tr>
+            <ng-container *ngIf="!loading">
+              <tr *ngFor="let fed of federations">
               <td>{{ fed.name }}</td>
               <td>{{ fed.code }}</td>
               <td>
@@ -66,7 +73,8 @@ import { ApiError } from '../../../../core/interceptors/api-error.interceptor';
                 </button>
               </td>
             </tr>
-            <tr *ngIf="federations.length === 0">
+            </ng-container>
+            <tr *ngIf="federations.length === 0 && !loading">
               <td colspan="7" class="empty-state">No federations found</td>
             </tr>
           </tbody>
@@ -112,7 +120,7 @@ import { ApiError } from '../../../../core/interceptors/api-error.interceptor';
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .page-container { padding-bottom: 2rem; }
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
     .page-title { font-size: 1.5rem; font-weight: 700; color: #1e293b; margin: 0; }
@@ -154,131 +162,136 @@ import { ApiError } from '../../../../core/interceptors/api-error.interceptor';
   `]
 })
 export class FederationManagementComponent implements OnInit {
-    private fb = inject(FormBuilder);
-    private platformService = inject(PlatformAdminService);
+  private fb = inject(FormBuilder);
+  private platformService = inject(PlatformAdminService);
 
-    federations: Federation[] = [];
-    federationForm: FormGroup;
-    showModal = false;
-    isEditing = false;
-    loading = false;
-    currentId: number | null = null;
-    errorMessage = '';
-    successMessage = '';
+  federations: Federation[] = [];
+  federationForm: FormGroup;
+  showModal = false;
+  isEditing = false;
+  loading = true;
+  currentId: number | null = null;
+  errorMessage = '';
+  successMessage = '';
+  private cdr = inject(ChangeDetectorRef);
 
-    constructor() {
-        this.federationForm = this.fb.group({
-            name: ['', Validators.required],
-            code: ['', Validators.required],
-            subdomain: ['', Validators.required]
-        });
-    }
+  constructor() {
+    this.federationForm = this.fb.group({
+      name: ['', Validators.required],
+      code: ['', Validators.required],
+      subdomain: ['', Validators.required]
+    });
+  }
 
-    get f() { return this.federationForm.controls; }
+  get f() { return this.federationForm.controls; }
 
-    ngOnInit() {
-        this.loadFederations();
-    }
+  ngOnInit() {
+    this.loadFederations();
+  }
 
-    loadFederations() {
-        this.platformService.getFederations().subscribe({
-            next: (data) => {
-                // Assuming API returns { content: [...], ... } or just array for now
-                this.federations = Array.isArray(data) ? data : (data.content || []);
-                this.errorMessage = '';
-            },
-            error: (error: ApiError) => {
-                this.errorMessage = `Failed to load federations: ${error.message}`;
-                this.federations = [];
-            }
-        });
-    }
+  loadFederations() {
+    this.platformService.getFederations().subscribe({
+      next: (data) => {
+        // Assuming API returns { content: [...], ... } or just array for now
+        this.federations = Array.isArray(data) ? data : (data.content || []);
+        this.errorMessage = '';
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error: ApiError) => {
+        this.errorMessage = `Failed to load federations: ${error.message}`;
+        this.federations = [];
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
-    openModal() {
-        this.isEditing = false;
-        this.currentId = null;
-        this.federationForm.reset();
-        this.showModal = true;
-    }
+  openModal() {
+    this.isEditing = false;
+    this.currentId = null;
+    this.federationForm.reset();
+    this.showModal = true;
+  }
 
-    closeModal() {
-        this.showModal = false;
-    }
+  closeModal() {
+    this.showModal = false;
+  }
 
-    editFederation(fed: Federation) {
-        this.isEditing = true;
-        this.currentId = fed.id;
-        this.federationForm.patchValue({
-            name: fed.name,
-            code: fed.code,
-            subdomain: fed.subdomain
-        });
-        this.showModal = true;
-    }
+  editFederation(fed: Federation) {
+    this.isEditing = true;
+    this.currentId = fed.id;
+    this.federationForm.patchValue({
+      name: fed.name,
+      code: fed.code,
+      subdomain: fed.subdomain
+    });
+    this.showModal = true;
+  }
 
-    onSubmit() {
-        if (this.federationForm.invalid) return;
+  onSubmit() {
+    if (this.federationForm.invalid) return;
 
-        this.loading = true;
-        const data = this.federationForm.value;
+    this.loading = true;
+    const data = this.federationForm.value;
 
-        if (this.isEditing && this.currentId) {
-            this.platformService.updateFederation(this.currentId, data).subscribe({
-                next: () => {
-                    this.loadFederations();
-                    this.closeModal();
-                    this.loading = false;
-                    this.successMessage = 'Federation updated successfully.';
-                },
-                error: (error: ApiError) => {
-                    this.loading = false;
-                    this.errorMessage = `Update failed: ${error.message}`;
-                }
-            });
-        } else {
-            this.platformService.createFederation(data).subscribe({
-                next: () => {
-                    this.loadFederations();
-                    this.closeModal();
-                    this.loading = false;
-                    this.successMessage = 'Federation created successfully.';
-                },
-                error: (error: ApiError) => {
-                    this.loading = false;
-                    this.errorMessage = `Creation failed: ${error.message}`;
-                }
-            });
+    if (this.isEditing && this.currentId) {
+      this.platformService.updateFederation(this.currentId, data).subscribe({
+        next: () => {
+          this.loadFederations();
+          this.closeModal();
+          this.loading = false;
+          this.successMessage = 'Federation updated successfully.';
+        },
+        error: (error: ApiError) => {
+          this.loading = false;
+          this.errorMessage = `Update failed: ${error.message}`;
         }
-    }
-
-    toggleStatus(fed: Federation) {
-        const newStatus = fed.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-        if (confirm(`Are you sure you want to change status to ${newStatus}?`)) {
-            this.platformService.updateFederationStatus(fed.id, newStatus).subscribe({
-                next: () => {
-                    this.loadFederations();
-                    this.successMessage = `Federation status updated to ${newStatus}.`;
-                },
-                error: (error: ApiError) => {
-                    this.errorMessage = `Status update failed: ${error.message}`;
-                }
-            });
+      });
+    } else {
+      this.platformService.createFederation(data).subscribe({
+        next: () => {
+          this.loadFederations();
+          this.closeModal();
+          this.loading = false;
+          this.successMessage = 'Federation created successfully.';
+        },
+        error: (error: ApiError) => {
+          this.loading = false;
+          this.errorMessage = `Creation failed: ${error.message}`;
         }
+      });
     }
+  }
 
-    onSearch(event: any) {
-        // Implement search logic or API call
+  toggleStatus(fed: Federation) {
+    const newStatus = fed.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    if (confirm(`Are you sure you want to change status to ${newStatus}?`)) {
+      this.platformService.updateFederationStatus(fed.id, newStatus).subscribe({
+        next: () => {
+          this.loadFederations();
+          this.successMessage = `Federation status updated to ${newStatus}.`;
+        },
+        error: (error: ApiError) => {
+          this.errorMessage = `Status update failed: ${error.message}`;
+        }
+      });
     }
+  }
 
-    onStatusFilter(event: any) {
-        const status = event.target.value;
-        this.platformService.getFederations(0, 10, status).subscribe({
-            next: data => {
-                this.federations = Array.isArray(data) ? data : (data.content || []);
-            },
-            error: (error: ApiError) => {
-                this.errorMessage = `Filter request failed: ${error.message}`;
-            }
-        });
-    }
+  onSearch(event: any) {
+    // Implement search logic or API call
+  }
+
+  onStatusFilter(event: any) {
+    const status = event.target.value;
+    this.platformService.getFederations(0, 10, status).subscribe({
+      next: data => {
+        this.federations = Array.isArray(data) ? data : (data.content || []);
+      },
+      error: (error: ApiError) => {
+        this.errorMessage = `Filter request failed: ${error.message}`;
+      }
+    });
+  }
 }

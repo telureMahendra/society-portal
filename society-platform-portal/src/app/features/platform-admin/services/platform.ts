@@ -59,8 +59,12 @@ export class PlatformService {
   }
 
   // Federations
-  getFederations(page: number = 0, size: number = 10): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/federations?page=${page}&size=${size}`);
+  getFederations(page: number = 0, size: number = 10, status?: string): Observable<any> {
+    let url = `${this.apiUrl}/federations?page=${page}&size=${size}`;
+    if (status && status !== 'ALL') {
+      url += `&status=${status}`;
+    }
+    return this.http.get<any>(url);
   }
 
   createFederation(data: any): Observable<any> {
