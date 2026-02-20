@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.vscode
+.editorconfig
+README.md
+angular.json
+package-lock.json
+tsconfig*.json
+.angular
+.npm
+npm-debug.log
