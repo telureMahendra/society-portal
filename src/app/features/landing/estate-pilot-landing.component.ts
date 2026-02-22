@@ -2,61 +2,79 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SubdomainService } from '../../core/subdomain/subdomain.service';
+import { BrandingService } from '../../core/branding/branding.service';
+import { SocietyBranding } from '../../core/models/branding.model';
+import { OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-estate-pilot-landing',
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="landing-container">
+    <div class="landing-container" [style.--primary]="branding?.theme?.primaryColor || '#2563eb'">
       <!-- Navbar -->
       <nav class="navbar">
         <div class="logo-area">
-          <img src="/logo.jpg" alt="EstatePilot Logo" class="logo">
-          <span class="brand">EstatePilot</span>
+          <img [src]="branding?.logoUrl || '/logo.jpg'" alt="Logo" class="logo">
+          <span class="brand">{{ branding?.name || 'EstatePilot' }}</span>
         </div>
         <div class="nav-links">
-          <a (click)="onSocietyClick()" class="btn btn-outline">Society Login</a>
-          <a (click)="onPlatformClick()" class="btn btn-primary">Platform Admin</a>
+          <a (click)="onSocietyClick()" class="btn btn-outline" *ngIf="!isSocietySubdomain && !isPlatformSubdomain">Society Login</a>
+          <a (click)="onLoginClick()" class="btn btn-outline" *ngIf="isSocietySubdomain">Login</a>
+          <a (click)="onPlatformClick()" class="btn btn-primary" *ngIf="!isSocietySubdomain">Platform Admin</a>
         </div>
       </nav>
 
       <!-- Hero Section -->
       <header class="hero">
         <div class="hero-content">
-          <h1 class="animate-up">Smart Living, <span>Elevated.</span></h1>
-          <p class="animate-up delay-1">The most comprehensive society management ecosystem built for modern communities. Streamline billing, notices, and interactions with ease.</p>
+          <h1 class="animate-up" *ngIf="!isSocietySubdomain">Smart Living, <span>Elevated.</span></h1>
+          <h1 class="animate-up" *ngIf="isSocietySubdomain">Welcome to <span>{{ branding?.name }}</span></h1>
+          
+          <p class="animate-up delay-1" *ngIf="!isSocietySubdomain">The most comprehensive society management ecosystem built for modern communities. Streamline billing, notices, and interactions with ease.</p>
+          <p class="animate-up delay-1" *ngIf="isSocietySubdomain">Experience seamless community living with our digital management portal. Access bills, notices, and society updates in one place.</p>
+          
           <div class="hero-actions animate-up delay-2">
-            <a (click)="onSocietyClick()" class="btn btn-large btn-primary">Get Started</a>
+            <a (click)="onLoginClick()" class="btn btn-large btn-primary" *ngIf="isSocietySubdomain">Go to Dashboard</a>
+            <a (click)="onLoginClick()" class="btn btn-large btn-primary" *ngIf="!isSocietySubdomain">Get Started</a>
             <a href="#features" class="btn btn-large btn-outline">Explore Features</a>
           </div>
         </div>
         <div class="hero-visual animate-fade">
-          <div class="glass-card main-card">
-            <div class="card-header">
-              <div class="dot red"></div>
-              <div class="dot yellow"></div>
-              <div class="dot green"></div>
-            </div>
-            <div class="card-content">
-              <div class="line long"></div>
-              <div class="line med"></div>
-              <div class="line short"></div>
-              <div class="stats-row">
-                <div class="stat-box"></div>
-                <div class="stat-box"></div>
-                <div class="stat-box"></div>
+          <!-- Show Society Banner if available -->
+          <div class="banner-container" *ngIf="isSocietySubdomain && branding?.bannerUrl">
+            <img [src]="branding?.bannerUrl" alt="Society Banner" class="hero-banner">
+          </div>
+
+          <!-- Default Visuals (Show when not on society subdomain OR no banner available) -->
+          <ng-container *ngIf="!isSocietySubdomain || !branding?.bannerUrl">
+            <div class="glass-card main-card">
+              <div class="card-header">
+                <div class="dot red"></div>
+                <div class="dot yellow"></div>
+                <div class="dot green"></div>
+              </div>
+              <div class="card-content">
+                <div class="line long"></div>
+                <div class="line med"></div>
+                <div class="line short"></div>
+                <div class="stats-row">
+                  <div class="stat-box"></div>
+                  <div class="stat-box"></div>
+                  <div class="stat-box"></div>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="glass-card float-card p-1">
-            <i class="fas fa-file-invoice-dollar"></i>
-            <span>Auto Billing</span>
-          </div>
-          <div class="glass-card float-card p-2">
-            <i class="fas fa-bullhorn"></i>
-            <span>Instant Notices</span>
-          </div>
+            <div class="glass-card float-card p-1">
+              <i class="fas fa-file-invoice-dollar"></i>
+              <span>Auto Billing</span>
+            </div>
+            <div class="glass-card float-card p-2">
+              <i class="fas fa-bullhorn"></i>
+              <span>Instant Notices</span>
+            </div>
+          </ng-container>
         </div>
       </header>
 
@@ -249,6 +267,27 @@ import { SubdomainService } from '../../core/subdomain/subdomain.service';
       position: relative;
       display: flex;
       justify-content: center;
+      align-items: center;
+    }
+
+    .banner-container {
+      width: 100%;
+      max-width: 600px;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+      border: 4px solid var(--white);
+    }
+
+    .hero-banner {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .banner-container:hover .hero-banner {
+      transform: scale(1.05);
     }
 
     /* Visual Elements */
@@ -411,8 +450,35 @@ import { SubdomainService } from '../../core/subdomain/subdomain.service';
     }
   `]
 })
-export class EstatePilotLandingComponent {
+export class EstatePilotLandingComponent implements OnInit, OnDestroy {
   private subdomainService = inject(SubdomainService);
+  private brandingService = inject(BrandingService);
+
+  branding: SocietyBranding | null = null;
+  isSocietySubdomain = false;
+  isPlatformSubdomain = false;
+  private subscription = new Subscription();
+
+  ngOnInit(): void {
+    const subdomain = this.subdomainService.getSubdomain();
+    this.isSocietySubdomain = !!subdomain && subdomain !== 'platform' && subdomain !== 'admin';
+    this.isPlatformSubdomain = subdomain === 'platform' || subdomain === 'admin';
+
+    // Load branding if we're on a society subdomain
+    if (this.isSocietySubdomain) {
+      this.brandingService.loadBranding().subscribe();
+    }
+
+    this.subscription.add(
+      this.brandingService.branding$.subscribe(branding => {
+        this.branding = branding;
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
 
   onPlatformClick(): void {
     const url = this.subdomainService.constructUrl('platform', '/platform');
@@ -422,5 +488,17 @@ export class EstatePilotLandingComponent {
   onSocietyClick(): void {
     const url = this.subdomainService.constructUrl('society', '/login');
     window.location.href = url;
+  }
+
+  onLoginClick(): void {
+    // If already on society subdomain, just go to login path
+    if (this.isSocietySubdomain) {
+      window.location.href = '/login';
+    } else if (this.isPlatformSubdomain) {
+      window.location.href = '/platform';
+    } else {
+      // On root domain, default to society login for "Get Started"
+      this.onSocietyClick();
+    }
   }
 }

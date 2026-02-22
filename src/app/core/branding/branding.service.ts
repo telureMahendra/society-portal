@@ -52,15 +52,22 @@ export class BrandingService {
         }
 
         const apiUrl = `${environment.apiBaseUrl}/public/society`;
+        const mediaBaseUrl = `${environment.apiBaseUrl}/media`;
 
         return this.http.get<any>(apiUrl).pipe(
             tap(response => {
+                const formatUrl = (url: string | null, fallback: string) => {
+                    if (!url) return fallback;
+                    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+                    return `${mediaBaseUrl}/${url}`;
+                };
+
                 const branding: SocietyBranding = {
                     societyId: 0,
                     name: response.name,
                     subdomain: response.subdomain,
-                    logoUrl: response.logoUrl || '/logo.jpg',
-                    bannerUrl: response.bannerUrl || '/assets/banner.jpg',
+                    logoUrl: formatUrl(response.logoUrl, '/logo.jpg'),
+                    bannerUrl: formatUrl(response.bannerUrl, '/assets/banner.jpg'),
                     theme: this.defaultBranding.theme,
                     featureFlags: this.defaultBranding.featureFlags
                 };

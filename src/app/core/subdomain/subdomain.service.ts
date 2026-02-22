@@ -22,9 +22,15 @@ export class SubdomainService {
         this.currentSubdomainSubject.next(subdomain);
     }
 
+    private isIPAddress(hostname: string): boolean {
+        // More robust IP detection (supports localhost, IPv4, and IPv4:port)
+        const ipPattern = /^(\d{1,3}\.){3}\d{1,3}(:\d+)?$/;
+        return ipPattern.test(hostname) || hostname === 'localhost' || hostname.includes('localhost:');
+    }
+
     private extractSubdomain(hostname: string): string | null {
-        // Fallback for localhost without subdomain
-        if (hostname === 'localhost') {
+        // Fallback for localhost or IP without subdomain
+        if (this.isIPAddress(hostname)) {
             return null;
         }
 
@@ -57,6 +63,11 @@ export class SubdomainService {
 
     public getBaseDomain(): string {
         const hostname = this.document.location.hostname;
+
+        if (this.isIPAddress(hostname)) {
+            return hostname;
+        }
+
         const parts = hostname.split('.');
 
         // Handle localhost
@@ -73,11 +84,19 @@ export class SubdomainService {
     }
 
     public constructUrl(subdomain: string, path: string): string {
+        const hostname = this.document.location.hostname;
         const baseDomain = this.getBaseDomain();
         const port = this.document.location.port;
         const protocol = this.document.location.protocol;
 
-        let url = `${protocol}//${subdomain}.${baseDomain}`;
+        let url = '';
+        if (this.isIPAddress(hostname)) {
+            // Cannot use subdomains with IP addresses
+            url = `${protocol}//${hostname}`;
+        } else {
+            url = `${protocol}//${subdomain}.${baseDomain}`;
+        }
+
         if (port) {
             url += `:${port}`;
         }

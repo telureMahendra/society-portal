@@ -24,7 +24,7 @@ export const routes: Routes = [
         component: MainLayoutComponent,
         canActivate: [landingGuard, authGuard, domainGuard],
         children: [
-            { path: '', redirectTo: '/login', pathMatch: 'full' },
+            { path: '', redirectTo: '/landing', pathMatch: 'full' },
             { path: 'dashboard', component: DashboardComponent },
             { path: 'bills', component: BillListComponent },
             { path: 'payments', component: PaymentListComponent },
