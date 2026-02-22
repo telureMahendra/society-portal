@@ -23,9 +23,9 @@ export class SubdomainService {
     }
 
     private isIPAddress(hostname: string): boolean {
-        // More robust IP detection (supports localhost, IPv4, and IPv4:port)
-        const ipPattern = /^(\d{1,3}\.){3}\d{1,3}(:\d+)?$/;
-        return ipPattern.test(hostname) || hostname === 'localhost' || hostname.includes('localhost:');
+        // Detect pure IP addresses (IPv4)
+        const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+        return ipPattern.test(hostname) || hostname === 'localhost';
     }
 
     private extractSubdomain(hostname: string): string | null {
@@ -35,6 +35,12 @@ export class SubdomainService {
         }
 
         const parts = hostname.split('.');
+
+        // Handle IP-based hostnames like "lodha.194.164.149.201"
+        const isIpHostname = parts.length >= 5 && parts.slice(-4).every(p => /^\d{1,3}$/.test(p));
+        if (isIpHostname) {
+            return parts.slice(0, parts.length - 4).join('.');
+        }
 
         // case: platform.localhost -> parts=['platform', 'localhost']
         if (parts.length > 1 && parts[parts.length - 1] === 'localhost') {
@@ -69,6 +75,12 @@ export class SubdomainService {
         }
 
         const parts = hostname.split('.');
+
+        // Handle IP-based hostnames
+        const isIpHostname = parts.length >= 4 && parts.slice(-4).every(p => /^\d{1,3}$/.test(p));
+        if (isIpHostname) {
+            return parts.slice(-4).join('.');
+        }
 
         // Handle localhost
         if (hostname === 'localhost' || parts[parts.length - 1] === 'localhost') {
