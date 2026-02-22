@@ -10,9 +10,6 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Debug: List files to verify workspace structure
-RUN ls -la
-
 # Build the application
 RUN npm run build -- --project society-platform-portal --configuration production
 

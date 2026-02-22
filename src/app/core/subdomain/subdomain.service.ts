@@ -54,4 +54,35 @@ export class SubdomainService {
     public getSubdomain(): string | null {
         return this.currentSubdomainSubject.value;
     }
+
+    public getBaseDomain(): string {
+        const hostname = this.document.location.hostname;
+        const parts = hostname.split('.');
+
+        // Handle localhost
+        if (hostname === 'localhost' || parts[parts.length - 1] === 'localhost') {
+            return 'localhost';
+        }
+
+        // Handle production domains (e.g., app.estatepilot.com -> estatepilot.com)
+        if (parts.length > 2) {
+            return parts.slice(-2).join('.');
+        }
+
+        return hostname;
+    }
+
+    public constructUrl(subdomain: string, path: string): string {
+        const baseDomain = this.getBaseDomain();
+        const port = this.document.location.port;
+        const protocol = this.document.location.protocol;
+
+        let url = `${protocol}//${subdomain}.${baseDomain}`;
+        if (port) {
+            url += `:${port}`;
+        }
+        url += path.startsWith('/') ? path : `/${path}`;
+
+        return url;
+    }
 }

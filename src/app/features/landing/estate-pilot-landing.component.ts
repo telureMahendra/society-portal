@@ -1,12 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { SubdomainService } from '../../core/subdomain/subdomain.service';
 
 @Component({
-    selector: 'app-estate-pilot-landing',
-    standalone: true,
-    imports: [CommonModule, RouterModule],
-    template: `
+  selector: 'app-estate-pilot-landing',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  template: `
     <div class="landing-container">
       <!-- Navbar -->
       <nav class="navbar">
@@ -15,8 +16,8 @@ import { RouterModule } from '@angular/router';
           <span class="brand">EstatePilot</span>
         </div>
         <div class="nav-links">
-          <a routerLink="/login" class="btn btn-outline">Society Login</a>
-          <a routerLink="/platform" class="btn btn-primary">Platform Admin</a>
+          <a (click)="onSocietyClick()" class="btn btn-outline">Society Login</a>
+          <a (click)="onPlatformClick()" class="btn btn-primary">Platform Admin</a>
         </div>
       </nav>
 
@@ -26,7 +27,7 @@ import { RouterModule } from '@angular/router';
           <h1 class="animate-up">Smart Living, <span>Elevated.</span></h1>
           <p class="animate-up delay-1">The most comprehensive society management ecosystem built for modern communities. Streamline billing, notices, and interactions with ease.</p>
           <div class="hero-actions animate-up delay-2">
-            <a routerLink="/login" class="btn btn-large btn-primary">Get Started</a>
+            <a (click)="onSocietyClick()" class="btn btn-large btn-primary">Get Started</a>
             <a href="#features" class="btn btn-large btn-outline">Explore Features</a>
           </div>
         </div>
@@ -109,7 +110,7 @@ import { RouterModule } from '@angular/router';
       </footer>
     </div>
   `,
-    styles: [`
+  styles: [`
     :host {
       --primary: #2563eb;
       --primary-dark: #1d4ed8;
@@ -410,4 +411,16 @@ import { RouterModule } from '@angular/router';
     }
   `]
 })
-export class EstatePilotLandingComponent { }
+export class EstatePilotLandingComponent {
+  private subdomainService = inject(SubdomainService);
+
+  onPlatformClick(): void {
+    const url = this.subdomainService.constructUrl('platform', '/platform');
+    window.location.href = url;
+  }
+
+  onSocietyClick(): void {
+    const url = this.subdomainService.constructUrl('society', '/login');
+    window.location.href = url;
+  }
+}
