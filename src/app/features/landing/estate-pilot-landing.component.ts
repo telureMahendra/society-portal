@@ -13,6 +13,27 @@ import { Subscription } from 'rxjs';
   imports: [CommonModule, RouterModule],
   template: `
     <div class="landing-container" [style.--primary]="branding?.theme?.primaryColor || '#2563eb'">
+      
+      <!-- Society Not Found / Error State -->
+      <div class="error-state-overlay" *ngIf="hasBrandingError && isSocietySubdomain">
+        <div class="error-content animate-up">
+          <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h1>Society <span>Not Found</span></h1>
+          <p>The society you're looking for doesn't seem to be registered on our platform yet. Are you the administrator or would you like to bring your society to EstatePilot?</p>
+          
+          <div class="enquiry-card glass-card">
+            <h3>Join the Future of Living</h3>
+            <p>Transform your community with automated billing, visitor security, and seamless communication.</p>
+            <div class="action-grid">
+              <a href="mailto:sales@estatepilot.com" class="btn btn-primary">Enquire Now</a>
+              <a (click)="onPlatformClick()" class="btn btn-outline">Back to Home</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Navbar -->
       <nav class="navbar">
         <div class="logo-area">
@@ -448,6 +469,64 @@ import { Subscription } from 'rxjs';
       .hero-visual { width: 100%; margin-top: 2rem; }
       .main-card { width: 100%; max-width: 400px; }
     }
+
+    /* Error State Styles */
+    .error-state-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .error-content {
+      max-width: 600px;
+    }
+
+    .error-icon {
+      font-size: 4rem;
+      color: #f59e0b;
+      margin-bottom: 2rem;
+    }
+
+    .error-content h1 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.04em;
+    }
+
+    .error-content h1 span {
+      color: #ef4444;
+    }
+
+    .error-content p {
+      font-size: 1.25rem;
+      color: var(--text-light);
+      margin-bottom: 3rem;
+    }
+
+    .enquiry-card {
+      padding: 3rem;
+      border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+
+    .enquiry-card h3 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .action-grid {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+    }
   `]
 })
 export class EstatePilotLandingComponent implements OnInit, OnDestroy {
@@ -457,6 +536,7 @@ export class EstatePilotLandingComponent implements OnInit, OnDestroy {
   branding: SocietyBranding | null = null;
   isSocietySubdomain = false;
   isPlatformSubdomain = false;
+  hasBrandingError = false;
   private subscription = new Subscription();
 
   ngOnInit(): void {
@@ -472,6 +552,12 @@ export class EstatePilotLandingComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.brandingService.branding$.subscribe(branding => {
         this.branding = branding;
+      })
+    );
+
+    this.subscription.add(
+      this.brandingService.brandingError$.subscribe(error => {
+        this.hasBrandingError = error;
       })
     );
   }

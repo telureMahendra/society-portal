@@ -11,6 +11,9 @@ import { domainGuard } from './core/guards/domain.guard';
 
 import { landingGuard } from './core/guards/landing.guard';
 import { EstatePilotLandingComponent } from './features/landing/estate-pilot-landing.component';
+import { SocietyUnitsComponent } from './features/units/society-units.component';
+import { MemberListComponent } from './features/members/member-list.component';
+import { VisitorListComponent } from './features/visitors/visitor-list.component';
 
 export const routes: Routes = [
     { path: 'landing', component: EstatePilotLandingComponent },
@@ -29,7 +32,10 @@ export const routes: Routes = [
             { path: 'bills', component: BillListComponent },
             { path: 'payments', component: PaymentListComponent },
             { path: 'notices', component: NoticeListComponent },
-            { path: 'events', component: EventListComponent }
+            { path: 'events', component: EventListComponent },
+            { path: 'units', component: SocietyUnitsComponent },
+            { path: 'members', component: MemberListComponent },
+            { path: 'visitors', component: VisitorListComponent }
         ]
     },
     { path: '**', redirectTo: 'landing' }

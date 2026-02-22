@@ -4,13 +4,15 @@ import { RouterModule } from '@angular/router';
 import { HeaderComponent } from '../header/header.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { FooterComponent } from '../footer/footer.component';
+import { SidebarService } from '../../core/services/sidebar.service';
+import { inject } from '@angular/core';
 
 @Component({
-    selector: 'app-main-layout',
-    standalone: true,
-    imports: [CommonModule, RouterModule, HeaderComponent, SidebarComponent, FooterComponent],
-    template: `
-    <div class="layout-wrapper">
+  selector: 'app-main-layout',
+  standalone: true,
+  imports: [CommonModule, RouterModule, HeaderComponent, SidebarComponent, FooterComponent],
+  template: `
+    <div class="layout-wrapper" [class.sidebar-collapsed]="!(sidebarService.isOpen$ | async)">
       <app-header></app-header>
       <div class="content-wrapper">
         <app-sidebar class="sidebar"></app-sidebar>
@@ -21,7 +23,7 @@ import { FooterComponent } from '../footer/footer.component';
       <app-footer></app-footer>
     </div>
   `,
-    styles: [`
+  styles: [`
     .layout-wrapper {
       display: flex;
       flex-direction: column;
@@ -33,22 +35,41 @@ import { FooterComponent } from '../footer/footer.component';
       display: flex;
       flex: 1;
       overflow: hidden;
+      margin-top: 72px; /* Match header height */
     }
 
     .sidebar {
       flex: 0 0 250px;
-      /* Hidden on mobile, can add media queries later */
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
       @media (max-width: 768px) {
-        display: none; 
+        position: fixed;
+        left: -250px;
+        top: 72px;
+        bottom: 0;
+        z-index: 150;
+        box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+      }
+    }
+
+    .sidebar-collapsed .sidebar {
+      margin-left: -250px;
+      
+      @media (max-width: 768px) {
+        left: 0;
+        margin-left: 0;
       }
     }
 
     .main-content {
       flex: 1;
-      padding: 1.5rem;
+      padding: 2.5rem;
       overflow-y: auto;
-      background-color: var(--background-color, #f4f6f8);
+      background-color: var(--background-color, #f8fafc);
+      transition: all 0.3s ease;
     }
   `]
 })
-export class MainLayoutComponent { }
+export class MainLayoutComponent {
+  sidebarService = inject(SidebarService);
+}
