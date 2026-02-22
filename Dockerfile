@@ -10,8 +10,11 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
+# Debug: List files to verify workspace structure
+RUN ls -la
+
 # Build the application
-RUN npm run build -- --configuration production
+RUN npm run build -- --project society-platform-portal --configuration production
 
 # Stage 2: Serve the application using Nginx
 FROM nginx:stable-alpine
