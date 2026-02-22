@@ -55,15 +55,18 @@ export class BrandingService {
             return of(this.defaultBranding);
         }
 
+        const serverRoot = environment.apiBaseUrl.replace('/api/v1', '');
         const apiUrl = `${environment.apiBaseUrl}/public/society`;
-        const mediaBaseUrl = `${environment.apiBaseUrl}/media`;
 
         return this.http.get<any>(apiUrl).pipe(
             tap(response => {
                 const formatUrl = (url: string | null, fallback: string) => {
                     if (!url) return fallback;
-                    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-                    return `${mediaBaseUrl}/${url}`;
+                    if (url.startsWith('http')) return url;
+                    // If it's a relative path from the server, prepend server root
+                    if (url.startsWith('/')) return `${serverRoot}${url}`;
+                    // Fallback for legacy filenames without path
+                    return `${serverRoot}/uploads/images/${url}`;
                 };
 
                 const branding: SocietyBranding = {
