@@ -41,6 +41,8 @@ import { Subscription } from 'rxjs';
           <span class="brand">{{ branding?.name || 'EstatePilot' }}</span>
         </div>
         <div class="nav-links">
+          <a (click)="onLoginClick()" class="btn btn-outline" *ngIf="isSocietySubdomain">Login</a>
+          <a (click)="onPlatformClick()" class="btn btn-primary" *ngIf="isPlatformSubdomain">Platform Admin</a>
         </div>
       </nav>
 
@@ -54,6 +56,8 @@ import { Subscription } from 'rxjs';
           <p class="animate-up delay-1" *ngIf="isSocietySubdomain">Experience seamless community living with our digital management portal. Access bills, notices, and society updates in one place.</p>
           
           <div class="hero-actions animate-up delay-2">
+            <a (click)="onLoginClick()" class="btn btn-large btn-primary" *ngIf="isSocietySubdomain">Go to Dashboard</a>
+            <a (click)="onLoginClick()" class="btn btn-large btn-primary" *ngIf="isPlatformSubdomain">Go to Portal</a>
             <a href="#features" class="btn btn-large btn-outline">Explore Features</a>
           </div>
         </div>
@@ -531,6 +535,7 @@ export class EstatePilotLandingComponent implements OnInit, OnDestroy {
   branding: SocietyBranding | null = null;
   isSocietySubdomain = false;
   isPlatformSubdomain = false;
+  isRootDomain = false;
   hasBrandingError = false;
   private subscription = new Subscription();
 
@@ -538,6 +543,7 @@ export class EstatePilotLandingComponent implements OnInit, OnDestroy {
     const subdomain = this.subdomainService.getSubdomain();
     this.isSocietySubdomain = !!subdomain && subdomain !== 'platform' && subdomain !== 'admin';
     this.isPlatformSubdomain = subdomain === 'platform' || subdomain === 'admin';
+    this.isRootDomain = !subdomain;
 
     // Load branding if we're on a society subdomain
     if (this.isSocietySubdomain) {
