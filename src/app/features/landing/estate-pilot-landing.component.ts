@@ -41,9 +41,6 @@ import { Subscription } from 'rxjs';
           <span class="brand">{{ branding?.name || 'EstatePilot' }}</span>
         </div>
         <div class="nav-links">
-          <a (click)="onSocietyClick()" class="btn btn-outline" *ngIf="!isSocietySubdomain && !isPlatformSubdomain">Society Login</a>
-          <a (click)="onLoginClick()" class="btn btn-outline" *ngIf="isSocietySubdomain">Login</a>
-          <a (click)="onPlatformClick()" class="btn btn-primary" *ngIf="!isSocietySubdomain">Platform Admin</a>
         </div>
       </nav>
 
@@ -57,8 +54,6 @@ import { Subscription } from 'rxjs';
           <p class="animate-up delay-1" *ngIf="isSocietySubdomain">Experience seamless community living with our digital management portal. Access bills, notices, and society updates in one place.</p>
           
           <div class="hero-actions animate-up delay-2">
-            <a (click)="onLoginClick()" class="btn btn-large btn-primary" *ngIf="isSocietySubdomain">Go to Dashboard</a>
-            <a (click)="onLoginClick()" class="btn btn-large btn-primary" *ngIf="!isSocietySubdomain">Get Started</a>
             <a href="#features" class="btn btn-large btn-outline">Explore Features</a>
           </div>
         </div>
