@@ -18,11 +18,11 @@ FROM nginx:stable-alpine
 
 # Copy the build output to Nginx's default public directory
 # Note: The output path depends on the project name in angular.json
-COPY --from=build /app/dist/estate-pilot-portal/browser /usr/share/nginx/html
+COPY --from=build /app/dist/society-platform-portal/browser /usr/share/nginx/html
 
 # Copy custom Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+EXPOSE 5555
 
 CMD ["nginx", "-g", "daemon off;"]
