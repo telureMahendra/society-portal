@@ -14,6 +14,9 @@ export class BrandingService {
     private brandingSubject = new BehaviorSubject<SocietyBranding | null>(null);
     public branding$ = this.brandingSubject.asObservable();
 
+    private brandingErrorSubject = new BehaviorSubject<boolean>(false);
+    public brandingError$ = this.brandingErrorSubject.asObservable();
+
     private readonly defaultBranding: SocietyBranding = {
         societyId: 0,
         name: 'EstatePilot',
@@ -47,29 +50,42 @@ export class BrandingService {
 
         if (!subdomain || isPlatformSubdomain) {
             console.log('No subdomain detected, loading default branding.');
+            this.brandingErrorSubject.next(false);
             this.applyBranding(this.defaultBranding);
             return of(this.defaultBranding);
         }
 
+        const serverRoot = environment.apiBaseUrl.replace('/api/v1', '');
         const apiUrl = `${environment.apiBaseUrl}/public/society`;
 
         return this.http.get<any>(apiUrl).pipe(
             tap(response => {
+                const formatUrl = (url: string | null, fallback: string) => {
+                    if (!url) return fallback;
+                    if (url.startsWith('http')) return url;
+                    // If it's a relative path from the server, prepend server root
+                    if (url.startsWith('/')) return `${serverRoot}${url}`;
+                    // Fallback for legacy filenames without path
+                    return `${serverRoot}/uploads/images/${url}`;
+                };
+
                 const branding: SocietyBranding = {
                     societyId: 0,
                     name: response.name,
                     subdomain: response.subdomain,
-                    logoUrl: response.logoUrl || '/logo.jpg',
-                    bannerUrl: response.bannerUrl || '/assets/banner.jpg',
+                    logoUrl: formatUrl(response.logoUrl, '/logo.jpg'),
+                    bannerUrl: formatUrl(response.bannerUrl, '/assets/banner.jpg'),
                     theme: this.defaultBranding.theme,
                     featureFlags: this.defaultBranding.featureFlags
                 };
 
                 console.log(`Loaded branding for ${subdomain}`, branding);
+                this.brandingErrorSubject.next(false);
                 this.applyBranding(branding);
             }),
             catchError(err => {
                 console.error('Failed to load branding', err);
+                this.brandingErrorSubject.next(true);
                 this.applyBranding(this.defaultBranding);
                 return of(this.defaultBranding);
             })

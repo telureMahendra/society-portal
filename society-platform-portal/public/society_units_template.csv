@@ -1,0 +1,8 @@
+Wing,Flat Number,Floor,Owner Name,Resident Type,Occupancy Status,Area Sq Ft
+Wing A,101,1,Amit Shah,OWNER,OCCUPIED,1200
+Wing A,102,1,John Doe,TENANT,OCCUPIED,1150
+Wing A,103,1,N/A,VACANT,VACANT,1200
+Wing A,104,1,Rahul Verma,OWNER,OCCUPIED,1150
+Wing B,101,1,Sanjay Gupta,OWNER,OCCUPIED,1250
+Wing B,102,1,Anita Singh,TENANT,OCCUPIED,1200
+Wing B,103,1,N/A,VACANT,VACANT,1250

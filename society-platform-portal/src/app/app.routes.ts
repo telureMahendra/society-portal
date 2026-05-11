@@ -3,6 +3,7 @@ import { LoginComponent } from './features/login/login.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { BillListComponent } from './features/billing/bill-list.component';
+import { BillingConfigComponent } from './features/billing/billing-config.component';
 import { PaymentListComponent } from './features/payments/payment-list.component';
 import { NoticeListComponent } from './features/notices/notice-list.component';
 import { EventListComponent } from './features/events/event-list.component';
@@ -11,6 +12,10 @@ import { domainGuard } from './core/guards/domain.guard';
 
 import { landingGuard } from './core/guards/landing.guard';
 import { EstatePilotLandingComponent } from './features/landing/estate-pilot-landing.component';
+import { SocietyUnitsComponent } from './features/units/society-units.component';
+import { MemberListComponent } from './features/members/member-list.component';
+import { VisitorListComponent } from './features/visitors/visitor-list.component';
+import { SecurityGuardListComponent } from './features/guards/security-guard-list.component';
 
 export const routes: Routes = [
     { path: 'landing', component: EstatePilotLandingComponent },
@@ -24,12 +29,17 @@ export const routes: Routes = [
         component: MainLayoutComponent,
         canActivate: [landingGuard, authGuard, domainGuard],
         children: [
-            { path: '', redirectTo: '/login', pathMatch: 'full' },
+            { path: '', redirectTo: '/landing', pathMatch: 'full' },
             { path: 'dashboard', component: DashboardComponent },
             { path: 'bills', component: BillListComponent },
+            { path: 'billing-config', component: BillingConfigComponent },
             { path: 'payments', component: PaymentListComponent },
             { path: 'notices', component: NoticeListComponent },
-            { path: 'events', component: EventListComponent }
+            { path: 'events', component: EventListComponent },
+            { path: 'units', component: SocietyUnitsComponent },
+            { path: 'members', component: MemberListComponent },
+            { path: 'visitors', component: VisitorListComponent },
+            { path: 'guards', component: SecurityGuardListComponent }
         ]
     },
     { path: '**', redirectTo: 'landing' }

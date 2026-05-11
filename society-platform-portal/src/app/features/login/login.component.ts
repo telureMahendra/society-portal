@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { BrandingService } from '../../core/branding/branding.service';
+import { SubdomainService } from '../../core/subdomain/subdomain.service';
 import { SocietyBranding } from '../../core/models/branding.model';
 import { ApiError } from '../../core/interceptors/api-error.interceptor';
 
@@ -27,7 +28,8 @@ export class LoginComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private authService: AuthService,
-        private brandingService: BrandingService
+        private brandingService: BrandingService,
+        private subdomainService: SubdomainService
     ) {
         this.loginForm = this.formBuilder.group({
             username: ['', Validators.required],
@@ -47,13 +49,18 @@ export class LoginComponent implements OnInit {
         if (this.authService.isAuthenticated()) {
             console.log('LoginComponent: Authenticated check');
             const user = this.authService.currentUserValue;
-            const isPlatformHost = window.location.hostname.startsWith('platform') || window.location.hostname.startsWith('admin');
+            const subdomain = this.subdomainService.getSubdomain();
+            const isPlatformSubdomain = subdomain === 'platform' || subdomain === 'admin';
+            const isLocalhost = window.location.hostname === 'localhost';
 
             if (user) {
                 console.log('LoginComponent: User found, redirecting');
-                if (isPlatformHost && user.roles.includes('PLATFORM_ADMIN')) {
+                // Platform admin can log in on platform subdomain OR localhost
+                const canAccessPlatform = user.roles.includes('PLATFORM_ADMIN') && (isPlatformSubdomain || isLocalhost);
+
+                if (canAccessPlatform) {
                     this.router.navigate(['/platform/dashboard']);
-                } else if (!isPlatformHost && !user.roles.includes('PLATFORM_ADMIN')) {
+                } else if (!user.roles.includes('PLATFORM_ADMIN') && !isPlatformSubdomain) {
                     this.router.navigate([this.returnUrl]);
                 } else {
                     this.authService.logout();
@@ -81,15 +88,22 @@ export class LoginComponent implements OnInit {
             .subscribe({
                 next: () => {
                     const user = this.authService.currentUserValue;
-                    const isPlatformHost = window.location.hostname.startsWith('platform') || window.location.hostname.startsWith('admin');
-                    if (user && isPlatformHost && user.roles.includes('PLATFORM_ADMIN')) {
-                        this.router.navigate(['/platform/dashboard']);
-                    } else if (user && !isPlatformHost && !user.roles.includes('PLATFORM_ADMIN')) {
-                        this.router.navigate([this.returnUrl]);
-                    } else {
-                        this.authService.logout();
-                        this.error = 'Invalid account for this portal.';
-                        this.loading = false;
+                    const subdomain = this.subdomainService.getSubdomain();
+                    const isPlatformSubdomain = subdomain === 'platform' || subdomain === 'admin';
+                    const isLocalhost = window.location.hostname === 'localhost';
+
+                    if (user) {
+                        const canAccessPlatform = user.roles.includes('PLATFORM_ADMIN') && (isPlatformSubdomain || isLocalhost);
+
+                        if (canAccessPlatform) {
+                            this.router.navigate(['/platform/dashboard']);
+                        } else if (!user.roles.includes('PLATFORM_ADMIN') && !isPlatformSubdomain) {
+                            this.router.navigate([this.returnUrl]);
+                        } else {
+                            this.authService.logout();
+                            this.error = 'Invalid account for this portal.';
+                            this.loading = false;
+                        }
                     }
                 },
                 error: (error: ApiError) => {

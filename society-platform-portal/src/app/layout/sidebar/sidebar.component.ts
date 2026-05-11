@@ -3,55 +3,125 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 @Component({
-    selector: 'app-sidebar',
-    standalone: true,
-    imports: [CommonModule, RouterModule],
-    template: `
+  selector: 'app-sidebar',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  template: `
     <aside class="app-sidebar">
       <nav>
-        <ul>
-          <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
-          <li><a routerLink="/bills" routerLinkActive="active">Bills</a></li>
-          <li><a routerLink="/payments" routerLinkActive="active">Payments</a></li>
-          <li><a routerLink="/notices" routerLinkActive="active">Notices</a></li>
-          <li><a routerLink="/events" routerLinkActive="active">Events</a></li>
+        <ul class="nav-menu">
+          <li>
+            <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+              <i class="fas fa-th-large"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="/bills" routerLinkActive="active">
+              <i class="fas fa-file-invoice-dollar"></i>
+              <span>Bills</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="/billing-config" routerLinkActive="active">
+              <i class="fas fa-cogs"></i>
+              <span>Billing Config</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="/payments" routerLinkActive="active">
+              <i class="fas fa-history"></i>
+              <span>Payments</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="/notices" routerLinkActive="active">
+              <i class="fas fa-bullhorn"></i>
+              <span>Notices</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="/events" routerLinkActive="active">
+              <i class="fas fa-calendar-alt"></i>
+              <span>Events</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="/units" routerLinkActive="active">
+              <i class="fas fa-building"></i>
+              <span>Units</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="/members" routerLinkActive="active">
+              <i class="fas fa-users"></i>
+              <span>Members</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="/visitors" routerLinkActive="active">
+              <i class="fas fa-user-shield"></i>
+              <span>Visitors</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="/guards" routerLinkActive="active">
+              <i class="fas fa-shield-alt"></i>
+              <span>Security Guards</span>
+            </a>
+          </li>
         </ul>
       </nav>
     </aside>
   `,
-    styles: [`
+  styles: [`
     .app-sidebar {
       width: 250px;
-      background-color: #fff;
-      border-right: 1px solid #ddd;
-      height: calc(100vh - 64px); /* Subtract header height */
-      overflow-y: auto;
-      padding: 1rem 0;
+      background-color: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      height: 100%;
+      padding: 1.5rem 0;
     }
 
-    nav ul {
+    .nav-menu {
       list-style: none;
-      padding: 0;
+      padding: 0 1rem;
       margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
 
-    nav li a {
-      display: block;
-      padding: 0.75rem 1.5rem;
-      color: #333;
+    .nav-menu li a {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.875rem 1.25rem;
+      color: #64748b;
       text-decoration: none;
-      transition: background-color 0.2s;
+      border-radius: 0.75rem;
+      font-weight: 500;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       
+      i {
+        font-size: 1.1rem;
+        width: 24px;
+        text-align: center;
+      }
+
       &:hover {
-        background-color: #f5f5f5;
-        color: var(--primary-color, #3f51b5);
+        background-color: #f1f5f9;
+        color: var(--primary-color, #2563eb);
+        transform: translateX(4px);
       }
 
       &.active {
-        background-color: rgba(var(--primary-color-rgb), 0.1); /* Fallback needs proper RGB generic handling or just opacity */
-        background-color: #e3f2fd; /* Simplification */
-        color: var(--primary-color, #3f51b5);
-        border-right: 3px solid var(--primary-color, #3f51b5);
+        background-color: rgba(37, 99, 235, 0.1);
+        color: var(--primary-color, #2563eb);
+        
+        i {
+          color: var(--primary-color, #2563eb);
+        }
       }
     }
   `]
