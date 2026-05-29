@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SocietyStructureService } from '../../core/services/society-structure.service';
 import { Wing, Flat } from '../../core/models/society-structure.model';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
     selector: 'app-society-units',
@@ -17,7 +19,7 @@ import { Wing, Flat } from '../../core/models/society-structure.model';
         </div>
         <div class="header-actions">
           <button class="btn btn-outline" (click)="openBulkUploadModal()"><i class="fas fa-file-excel"></i> Bulk Upload</button>
-          <button class="btn btn-primary"><i class="fas fa-plus"></i> Add New Wing</button>
+          <button class="btn btn-primary" (click)="openAddWingModal()"><i class="fas fa-plus"></i> Add New Wing</button>
         </div>
       </header>
 
@@ -65,15 +67,19 @@ import { Wing, Flat } from '../../core/models/society-structure.model';
           <div class="display-header">
             <h2>{{ selectedWing.name }} <span>Units</span></h2>
             <div class="view-controls">
+              <div class="view-toggle">
+                <button [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'"><i class="fas fa-th-large"></i></button>
+                <button [class.active]="viewMode === 'table'" (click)="viewMode = 'table'"><i class="fas fa-list"></i></button>
+              </div>
               <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" [(ngModel)]="searchTerm" placeholder="Search flat or owner...">
+                <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange($event)" placeholder="Search flat or owner...">
               </div>
             </div>
           </div>
 
-          <div class="flats-grid">
-            <div *ngFor="let flat of filteredFlats" class="flat-card glass-card">
+          <div class="flats-grid" *ngIf="viewMode === 'grid'">
+            <div *ngFor="let flat of displayedFlats" class="flat-card glass-card">
               <div class="flat-header">
                 <span class="flat-number">{{ selectedWing.name.split(' ')[1] }}-{{ flat.flatNumber }}</span>
                 <span class="status-badge" [class]="flat.occupancyStatus.toLowerCase()">
@@ -113,9 +119,84 @@ import { Wing, Flat } from '../../core/models/society-structure.model';
             </div>
           </div>
 
-          <div *ngIf="filteredFlats.length === 0" class="empty-state">
+          
+          <div class="flats-table-container glass-card" *ngIf="viewMode === 'table'">
+            <table class="flats-table">
+              <thead>
+                <tr>
+                  <th>Unit</th>
+                  <th>Status</th>
+                  <th>Resident/Owner</th>
+                  <th>Type</th>
+                  <th>Area</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let flat of displayedFlats">
+                  <td><strong>{{ selectedWing.name.split(' ')[1] }}-{{ flat.flatNumber }}</strong></td>
+                  <td><span class="status-badge" [class]="flat.occupancyStatus.toLowerCase()">{{ flat.occupancyStatus }}</span></td>
+                  <td>{{ flat.ownerName }}</td>
+                  <td>{{ flat.residentType }}</td>
+                  <td>{{ flat.areaSqFt }} Sq Ft</td>
+                  <td class="table-actions">
+                    <button class="btn-icon-small" (click)="openOwnerModal(flat)" title="Manage Owner"><i class="fas fa-user-edit"></i></button>
+                    <button class="btn-icon-small" title="View History"><i class="fas fa-history"></i></button>
+                    <button class="btn-icon-small" title="Manage Billing"><i class="fas fa-file-invoice-dollar"></i></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div *ngIf="displayedFlats.length === 0" class="empty-state">
             <i class="fas fa-search"></i>
             <p>No flats found matching your search.</p>
+          </div>
+
+          <div class="pagination-controls glass-card" *ngIf="totalElements > 0">
+            <div class="page-info">
+              Showing {{ currentPage * pageSize + 1 }} to {{ min((currentPage + 1) * pageSize, totalElements) }} of {{ totalElements }} entries
+            </div>
+            <div class="page-actions">
+              <select [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+                <option *ngFor="let size of pageSizes" [value]="size">{{ size }} / page</option>
+              </select>
+              <button class="btn btn-outline" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)"><i class="fas fa-chevron-left"></i></button>
+              <span>Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+              <button class="btn btn-outline" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(currentPage + 1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Add New Wing Modal -->
+      <div class="modal-overlay" *ngIf="showAddWingModal" (click)="closeAddWingModal()">
+        <div class="modal-content glass-card animate-up" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>Add New <span>Wing</span></h2>
+            <button class="close-btn" (click)="closeAddWingModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Wing Name</label>
+              <input type="text" [(ngModel)]="newWingForm.name" placeholder="e.g. Wing C" />
+            </div>
+            <div class="form-group">
+              <label>Total Floors</label>
+              <input type="number" [(ngModel)]="newWingForm.totalFloors" placeholder="e.g. 10" />
+            </div>
+            <div class="form-group">
+              <label>Flats Per Floor</label>
+              <input type="number" [(ngModel)]="newWingForm.flatsPerFloor" placeholder="e.g. 4" />
+            </div>
+            <div class="modal-actions">
+              <button class="btn btn-outline" (click)="closeAddWingModal()">Cancel</button>
+              <button class="btn btn-primary" (click)="saveNewWing()" [disabled]="!newWingForm.name || !newWingForm.totalFloors || !newWingForm.flatsPerFloor">
+                <i class="fas fa-save"></i> Save Wing
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -291,6 +372,22 @@ import { Wing, Flat } from '../../core/models/society-structure.model';
       &:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
     }
 
+    
+    .view-controls { display: flex; gap: 1rem; align-items: center; }
+    .view-toggle { display: flex; background: #f1f5f9; padding: 0.25rem; border-radius: 0.5rem; gap: 0.25rem; }
+    .view-toggle button { border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 0.375rem; cursor: pointer; color: #64748b; transition: all 0.2s; }
+    .view-toggle button.active { background: white; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    
+    .flats-table-container { overflow-x: auto; border-radius: 1rem; margin-bottom: 1.5rem; }
+    .flats-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .flats-table th { padding: 1rem 1.5rem; background: #f8fafc; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; }
+    .flats-table td { padding: 1rem 1.5rem; border-bottom: 1px solid #e2e8f0; color: #1e293b; }
+    .flats-table tbody tr:last-child td { border-bottom: none; }
+    .flats-table tbody tr:hover { background: #f8fafc; }
+    .table-actions { display: flex; gap: 0.5rem; }
+    .btn-icon-small { width: 28px; height: 28px; border-radius: 0.375rem; border: 1px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+    .btn-icon-small:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+
     /* Modal Styles */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);
@@ -336,6 +433,10 @@ import { Wing, Flat } from '../../core/models/society-structure.model';
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    .pagination-controls { display: flex; justify-content: space-between; align-items: center; padding: 1rem; margin-top: 1.5rem; border-radius: 0.75rem; }
+    .page-actions { display: flex; align-items: center; gap: 1rem; }
+    .page-actions select { padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; outline: none; }
+    .page-actions button { padding: 0.5rem 1rem; }
     .flat-summary {
       background: #f1f5f9; padding: 1rem; border-radius: 0.75rem; margin-bottom: 2rem;
       strong { display: block; font-size: 1.1rem; color: #1e293b; }
@@ -364,9 +465,19 @@ import { Wing, Flat } from '../../core/models/society-structure.model';
   `]
 })
 export class SocietyUnitsComponent implements OnInit {
+    
+    viewMode: 'grid' | 'table' = 'grid';
     wings: Wing[] = [];
     selectedWing: Wing | null = null;
     searchTerm: string = '';
+    searchSubject = new Subject<string>();
+
+    displayedFlats: Flat[] = [];
+    currentPage = 0;
+    pageSize = 10;
+    totalElements = 0;
+    totalPages = 0;
+    pageSizes = [10, 20, 30, 50, 100];
 
     // Modal State
     showModal = false;
@@ -382,32 +493,84 @@ export class SocietyUnitsComponent implements OnInit {
     uploadProgress = 0;
     uploadComplete = false;
 
-    constructor(private structureService: SocietyStructureService) { }
+    // Add Wing State
+    showAddWingModal = false;
+    newWingForm = {
+        name: '',
+        totalFloors: null as any,
+        flatsPerFloor: null as any
+    };
+
+    constructor(private structureService: SocietyStructureService, private cdr: ChangeDetectorRef) { }
+
+    get totalUnits(): number {
+        return this.wings.reduce((acc, w) => acc + w.totalFlats, 0);
+    }
 
     ngOnInit(): void {
+        this.searchSubject.pipe(
+            debounceTime(300),
+            distinctUntilChanged()
+        ).subscribe(() => {
+            this.currentPage = 0;
+            this.loadFlats();
+        });
+
         this.structureService.getWings().subscribe(wings => {
             this.wings = wings;
             if (wings.length > 0) {
                 this.selectWing(wings[0]);
             }
+            this.cdr.detectChanges();
         });
     }
 
     selectWing(wing: Wing): void {
         this.selectedWing = wing;
+        this.currentPage = 0;
+        this.searchTerm = '';
+        this.loadFlats();
     }
 
-    get filteredFlats(): Flat[] {
-        if (!this.selectedWing || !this.selectedWing.flats) return [];
-        const search = this.searchTerm.toLowerCase();
-        return this.selectedWing.flats.filter(f =>
-            f.flatNumber.toLowerCase().includes(search) ||
-            f.ownerName.toLowerCase().includes(search)
-        );
+    loadFlats(): void {
+        if (!this.selectedWing) return;
+        this.structureService.getFlats(
+            this.selectedWing.name,
+            this.searchTerm,
+            this.currentPage,
+            this.pageSize
+        ).subscribe((response: any) => {
+            if (response && response.content) {
+                this.displayedFlats = response.content;
+                this.totalElements = response.totalElements;
+                this.totalPages = response.totalPages;
+                this.currentPage = response.pageNo;
+                this.pageSize = response.pageSize;
+            } else {
+                this.displayedFlats = Array.isArray(response) ? response : [];
+                this.totalElements = this.displayedFlats.length;
+                this.totalPages = 1;
+            }
+            this.cdr.detectChanges();
+        });
     }
 
-    get totalUnits(): number {
-        return this.wings.reduce((acc, w) => acc + w.totalFlats, 0);
+    min(a: number, b: number): number {
+        return Math.min(a, b);
+    }
+
+    onSearchChange(value: string): void {
+        this.searchSubject.next(value);
+    }
+
+    onPageChange(page: number): void {
+        this.currentPage = page;
+        this.loadFlats();
+    }
+
+    onPageSizeChange(): void {
+        this.currentPage = 0;
+        this.loadFlats();
     }
 
     get occupancyPercentage(): number {
@@ -448,6 +611,33 @@ export class SocietyUnitsComponent implements OnInit {
                     this.closeModal();
                     // Data is updated in mock service which is shared
                 }
+            });
+        }
+    }
+
+    // Add Wing Handlers
+    openAddWingModal(): void {
+        this.newWingForm = { name: '', totalFloors: null as any, flatsPerFloor: null as any };
+        this.showAddWingModal = true;
+    }
+
+    closeAddWingModal(): void {
+        this.showAddWingModal = false;
+    }
+
+    saveNewWing(): void {
+        if (this.newWingForm.name && this.newWingForm.totalFloors && this.newWingForm.flatsPerFloor) {
+            this.structureService.addWing(
+                this.newWingForm.name,
+                this.newWingForm.totalFloors,
+                this.newWingForm.flatsPerFloor
+            ).subscribe(newWing => {
+                this.closeAddWingModal();
+                this.structureService.getWings().subscribe(wings => {
+                    this.wings = wings;
+                    const created = wings.find(w => w.name === this.newWingForm.name); if (created) { this.selectWing(created); } else if (wings.length > 0) { this.selectWing(wings[wings.length - 1]); }
+                    this.cdr.detectChanges();
+                });
             });
         }
     }

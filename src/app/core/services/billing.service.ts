@@ -57,4 +57,16 @@ export class BillingService {
     getBillById(id: number): Observable<Bill | undefined> {
         return of(this.mockBills.find(b => b.id === id));
     }
+
+    getBillingConfigs(): Observable<any[]> {
+        return of([]);
+    }
+
+    updateBillingConfigs(payload: any): Observable<any> {
+        return of({ success: true });
+    }
+
+    generateAdhocBills(payload: any): Observable<any> {
+        return of({ success: true });
+    }
 }

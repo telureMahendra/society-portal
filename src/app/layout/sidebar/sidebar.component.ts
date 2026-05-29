@@ -17,7 +17,7 @@ import { RouterModule } from '@angular/router';
             </a>
           </li>
           <li>
-            <a routerLink="/bills" routerLinkActive="active">
+            <a routerLink="/billing" routerLinkActive="active">
               <i class="fas fa-file-invoice-dollar"></i>
               <span>Bills</span>
             </a>

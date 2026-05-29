@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Member, MemberType, MemberStatus } from '../../core/models/member.model';
@@ -281,10 +281,10 @@ export class MemberListComponent implements OnInit {
     uploadProgress = 0;
     uploadComplete = false;
 
-    constructor(private memberService: MemberService) { }
+    constructor(private memberService: MemberService, private cdr: ChangeDetectorRef) { }
 
     ngOnInit(): void {
-        this.memberService.getMembers().subscribe(data => this.members = data);
+        this.memberService.getMembers().subscribe(data => { this.members = data; this.cdr.detectChanges(); });
     }
 
     get filteredMembers(): Member[] {
@@ -335,7 +335,7 @@ export class MemberListComponent implements OnInit {
                 complete: () => {
                     this.isUploading = false;
                     this.uploadComplete = true;
-                    this.memberService.getMembers().subscribe(data => this.members = data);
+                    this.memberService.getMembers().subscribe(data => { this.members = data; this.cdr.detectChanges(); });
                 }
             });
         }

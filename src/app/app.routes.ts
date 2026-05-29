@@ -2,10 +2,13 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './features/login/login.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
-import { BillListComponent } from './features/billing/bill-list.component';
+
 import { PaymentListComponent } from './features/payments/payment-list.component';
 import { NoticeListComponent } from './features/notices/notice-list.component';
 import { EventListComponent } from './features/events/event-list.component';
+import { EventCreateComponent } from './features/events/event-create.component';
+import { EventEditComponent } from './features/events/event-edit.component';
+import { EventViewComponent } from './features/events/event-view.component';
 import { authGuard } from './core/guards/auth.guard';
 import { domainGuard } from './core/guards/domain.guard';
 
@@ -29,10 +32,35 @@ export const routes: Routes = [
         children: [
             { path: '', redirectTo: '/landing', pathMatch: 'full' },
             { path: 'dashboard', component: DashboardComponent },
-            { path: 'bills', component: BillListComponent },
+            {
+            path: 'billing',
+            children: [
+                { path: '', loadComponent: () => import('./features/billing/components/billing-dashboard.component').then(m => m.BillingDashboardComponent) },
+                { path: 'configuration', loadComponent: () => import('./features/billing/components/billing-config.component').then(m => m.BillingConfigComponent) },
+                { path: 'history', loadComponent: () => import('./features/billing/components/billing-history.component').then(m => m.BillingHistoryComponent) },
+                { path: 'details/:id', loadComponent: () => import('./features/billing/components/billing-details.component').then(m => m.BillingDetailsComponent) },
+                { path: 'addon', loadComponent: () => import('./features/billing/components/addon-bill.component').then(m => m.AddonBillComponent) }
+            ]
+        },
             { path: 'payments', component: PaymentListComponent },
-            { path: 'notices', component: NoticeListComponent },
-            { path: 'events', component: EventListComponent },
+            { 
+                path: 'notices', 
+                children: [
+                    { path: '', component: NoticeListComponent },
+                    { path: 'create', loadComponent: () => import('./features/notices/notice-create.component').then(m => m.NoticeCreateComponent) },
+                    { path: 'edit/:id', loadComponent: () => import('./features/notices/notice-edit.component').then(m => m.NoticeEditComponent) },
+                    { path: 'view/:id', loadComponent: () => import('./features/notices/notice-view.component').then(m => m.NoticeViewComponent) }
+                ]
+            },
+            { 
+                path: 'events', 
+                children: [
+                    { path: '', component: EventListComponent },
+                    { path: 'create', component: EventCreateComponent },
+                    { path: 'edit/:id', component: EventEditComponent },
+                    { path: 'view/:id', component: EventViewComponent }
+                ]
+            },
             { path: 'units', component: SocietyUnitsComponent },
             { path: 'members', component: MemberListComponent },
             { path: 'visitors', component: VisitorListComponent }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Visitor, VisitorPurpose, VisitorStatus } from '../../core/models/visitor.model';
@@ -123,9 +123,16 @@ import { VisitorService } from '../../core/services/visitor.service';
                   <span class="not-available" *ngIf="!visitor.checkOutTime">-</span>
                 </td>
                 <td>
-                  <span class="status-badge" [class]="getStatusClass(visitor)">
-                    {{ visitor.status.replace('_', ' ') }}
-                  </span>
+                  <select 
+                    class="status-select" 
+                    [class]="getStatusClass(visitor)"
+                    [ngModel]="visitor.status"
+                    (ngModelChange)="updateStatus(visitor.id, $event)">
+                    <option value="CHECKED_IN">CHECKED IN</option>
+                    <option value="CHECKED_OUT">CHECKED OUT</option>
+                    <option value="OVERSTAYED">OVERSTAYED</option>
+                    <option value="DENIED">DENIED</option>
+                  </select>
                 </td>
                 <td>
                   <div class="actions">
@@ -226,6 +233,17 @@ import { VisitorService } from '../../core/services/visitor.service';
       &.checked-out { background: #f1f5f9; color: #64748b; }
       &.overstayed { background: #fee2e2; color: #b91c1c; animation: pulse 2s infinite; }
     }
+    
+    .status-select {
+      padding: 0.375rem 1.5rem 0.375rem 0.75rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 800; white-space: nowrap; border: 1px solid transparent; cursor: pointer; appearance: none; outline: none; text-align: center;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+      background-repeat: no-repeat; background-position: right .5rem top 50%; background-size: .65rem auto;
+      &.checked-in { background-color: #dcfce7; color: #15803d; }
+      &.checked-out { background-color: #f1f5f9; color: #64748b; }
+      &.overstayed { background-color: #fee2e2; color: #b91c1c; }
+      &.denied { background-color: #fef2f2; color: #991b1b; }
+      &:hover { border-color: #cbd5e1; }
+    }
 
     .actions {
       display: flex; align-items: center; gap: 0.75rem;
@@ -253,10 +271,10 @@ export class VisitorListComponent implements OnInit {
     selectedPurpose: string = 'ALL';
     selectedStatus: string = 'ALL';
 
-    constructor(private visitorService: VisitorService) { }
+    constructor(private visitorService: VisitorService, private cdr: ChangeDetectorRef) { }
 
     ngOnInit(): void {
-        this.visitorService.getVisitors().subscribe(data => this.visitors = data);
+        this.visitorService.getVisitors().subscribe(data => { this.visitors = data; this.cdr.detectChanges(); });
     }
 
     get filteredVisitors(): Visitor[] {
@@ -302,7 +320,15 @@ export class VisitorListComponent implements OnInit {
     checkout(id: number): void {
         this.visitorService.checkoutVisitor(id).subscribe(success => {
             if (success) {
-                this.visitorService.getVisitors().subscribe(data => this.visitors = data);
+                this.visitorService.getVisitors().subscribe(data => { this.visitors = data; this.cdr.detectChanges(); });
+            }
+        });
+    }
+
+    updateStatus(id: number, status: VisitorStatus): void {
+        this.visitorService.updateStatus(id, status).subscribe(success => {
+            if (success) {
+                this.visitorService.getVisitors().subscribe(data => { this.visitors = data; this.cdr.detectChanges(); });
             }
         });
     }

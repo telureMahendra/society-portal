@@ -1,8 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { SocietyEventService } from '../../core/services/society-event.service';
-import { SocietyEvent } from '../../core/models/society-event.model';
+import { AuthService } from '../../core/auth/auth.service';
+import { SocietyEvent, EventListRequest } from '../../core/models/society-event.model';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-event-list',
@@ -16,8 +19,7 @@ import { SocietyEvent } from '../../core/models/society-event.model';
           <p>Join and participate in society gatherings and activities</p>
         </div>
         <div class="header-actions">
-          <button class="btn btn-outline"><i class="fas fa-calendar-alt"></i> My Calendar</button>
-          <button class="btn btn-primary"><i class="fas fa-plus"></i> Propose Event</button>
+          <button class="btn btn-primary" *ngIf="isAdmin" (click)="createEvent()"><i class="fas fa-plus"></i> Create Event</button>
         </div>
       </header>
 
@@ -25,7 +27,7 @@ import { SocietyEvent } from '../../core/models/society-event.model';
       <div class="filter-section glass-card">
         <div class="search-box">
           <i class="fas fa-search"></i>
-          <input type="text" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search events by title or location...">
+          <input type="text" [(ngModel)]="searchTerm" (keyup.enter)="applyFilters()" placeholder="Search events by title or location (Press Enter)...">
         </div>
         <div class="categories">
           <button 
@@ -33,56 +35,64 @@ import { SocietyEvent } from '../../core/models/society-event.model';
             [class.active]="currentCategory === cat"
             (click)="setCategory(cat)"
             class="filter-tab">
-            {{ cat | titlecase }}
+            {{ cat === '' ? 'All' : (cat | titlecase) }}
           </button>
         </div>
       </div>
 
       <!-- Events Grid -->
-      <div class="events-grid">
-        <div *ngFor="let event of filteredEvents" class="event-card glass-card animate-up">
+      <div class="events-grid" *ngIf="!isLoading && events && events.length > 0">
+        <div *ngFor="let event of events" class="event-card glass-card animate-up">
           <div class="card-image" [style.backgroundImage]="'url(' + (event.imageUrl || defaultImageUrl) + ')'">
-            <div class="category-badge">{{ event.category }}</div>
+            <div class="category-badge">{{ event.category || 'EVENT' }}</div>
             <div class="status-overlay" *ngIf="event.status === 'COMPLETED'">Completed</div>
           </div>
           
           <div class="card-content">
             <div class="event-date">
-              <div class="day">{{ event.startDate | date:'dd' }}</div>
-              <div class="month">{{ event.startDate | date:'MMM' }}</div>
+              <div class="day">{{ (event.eventDate || event.startDate || '') | date:'dd' }}</div>
+              <div class="month">{{ (event.eventDate || event.startDate || '') | date:'MMM' }}</div>
             </div>
             
             <div class="event-details">
-              <h3>{{ event.title }}</h3>
-              <p class="location"><i class="fas fa-map-marker-alt"></i> {{ event.location }}</p>
-              <p class="time"><i class="fas fa-clock"></i> {{ event.startDate | date:'shortTime' }} - {{ event.endDate | date:'shortTime' }}</p>
+              <h3>{{ event.title || 'Untitled Event' }}</h3>
+              <p class="location"><i class="fas fa-map-marker-alt"></i> {{ event.location || 'TBA' }}</p>
+              <p class="time"><i class="fas fa-clock"></i> {{ (event.eventDate || event.startDate || '') | date:'shortTime' }} - {{ (event.endDate || '') | date:'shortTime' }}</p>
               
-              <p class="description">{{ event.description }}</p>
-
-              <div class="attendees" *ngIf="event.currentAttendees">
-                <div class="avatar-stack">
-                  <div class="mini-avatar" *ngFor="let i of [1,2,3]"></div>
-                  <div class="plus-count">+{{ event.currentAttendees - 3 }} joined</div>
-                </div>
-              </div>
+              <p class="description">{{ event.description || 'No description available.' }}</p>
 
               <div class="card-actions">
-                <button class="btn btn-primary-sm" (click)="toggleRSVP(event)">
-                  <i class="fas" [ngClass]="isRSVPed(event.id) ? 'fa-check' : 'fa-hand-paper'"></i>
-                  {{ isRSVPed(event.id) ? 'Going' : 'Interested' }}
-                </button>
-                <button class="btn btn-outline-sm"><i class="fas fa-share-alt"></i></button>
+                <button class="btn btn-outline-sm" (click)="viewEvent(event.id)"><i class="fas fa-eye"></i> View Details</button>
+                <button class="btn btn-outline-sm edit-btn" *ngIf="isAdmin" (click)="editEvent(event.id)"><i class="fas fa-edit"></i> Edit</button>
+                <button class="btn btn-outline-sm delete-btn" *ngIf="isAdmin" (click)="deleteEvent(event.id)"><i class="fas fa-trash"></i> Delete</button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Pagination -->
+      <div class="pagination-controls" *ngIf="!isLoading && totalPages > 1">
+        <button class="btn btn-outline-sm" [disabled]="currentPage === 0" (click)="changePage(currentPage - 1)">Previous</button>
+        <span class="page-info">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+        <button class="btn btn-outline-sm" [disabled]="currentPage === totalPages - 1" (click)="changePage(currentPage + 1)">Next</button>
+      </div>
+
       <!-- Empty State -->
-      <div *ngIf="filteredEvents.length === 0" class="empty-state glass-card">
+      <div *ngIf="!isLoading && (!events || events.length === 0)" class="empty-state glass-card">
         <i class="fas fa-calendar-times"></i>
-        <p>No events found matching your current filters.</p>
-        <button (click)="resetFilters()" class="btn btn-primary">Discover All Events</button>
+        <p>No events available at the moment.</p>
+      </div>
+
+      <!-- Skeleton Loaders -->
+      <div class="events-grid" *ngIf="isLoading">
+         <div *ngFor="let i of [1,2,3,4]" class="event-card glass-card skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="card-content">
+               <div class="skeleton-text"></div>
+               <div class="skeleton-text short"></div>
+            </div>
+         </div>
       </div>
     </div>
   `,
@@ -160,16 +170,11 @@ import { SocietyEvent } from '../../core/models/society-event.model';
       .description { margin: 1rem 0; line-height: 1.5; color: #475569; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     }
 
-    .avatar-stack {
-      display: flex; align-items: center; margin-bottom: 1.5rem;
-      .mini-avatar { width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; border: 2px solid white; margin-left: -8px; &:first-child { margin-left: 0; } }
-      .plus-count { font-size: 0.75rem; font-weight: 600; color: #94a3b8; margin-left: 0.5rem; }
-    }
+    .card-actions { display: flex; gap: 0.75rem; margin-top: auto; flex-wrap: wrap; }
 
-    .card-actions { display: flex; gap: 0.75rem; margin-top: auto; }
-
-    .btn-primary-sm { padding: 0.5rem 1rem; border-radius: 0.5rem; background: #2563eb; color: white; border: none; font-weight: 700; font-size: 0.8125rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; &:hover { background: #1d4ed8; } }
-    .btn-outline-sm { padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; transition: all 0.2s; &:hover { border-color: #2563eb; color: #2563eb; } }
+    .btn-outline-sm { padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; transition: all 0.2s; &:hover:not(:disabled) { border-color: #2563eb; color: #2563eb; } &:disabled { opacity: 0.5; cursor: not-allowed; } }
+    .edit-btn { color: #f59e0b !important; border-color: #fef3c7 !important; &:hover { background: #fffbeb !important; border-color: #f59e0b !important; } }
+    .delete-btn { color: #ef4444 !important; border-color: #fee2e2 !important; &:hover { background: #fef2f2 !important; border-color: #ef4444 !important; } }
 
     .empty-state { text-align: center; padding: 5rem !important; i { font-size: 3rem; color: #cbd5e1; margin-bottom: 1.5rem; display: block; } p { font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; } }
 
@@ -178,6 +183,16 @@ import { SocietyEvent } from '../../core/models/society-event.model';
     .btn { padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
     .btn-primary { background: #2563eb; color: white; &:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); } }
     .btn-outline { background: white; border: 1px solid #e2e8f0; color: #1e293b; &:hover { background: #f8fafc; } }
+    
+    .pagination-controls { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 2rem; }
+    .page-info { font-weight: 600; color: #475569; }
+
+    /* Skeleton loaders */
+    .skeleton-card { height: 400px; display: flex; flex-direction: column; }
+    .skeleton-image { height: 200px; background: #e2e8f0; animation: pulse 1.5s infinite; }
+    .skeleton-text { height: 20px; background: #e2e8f0; margin-bottom: 1rem; border-radius: 4px; animation: pulse 1.5s infinite; }
+    .skeleton-text.short { width: 60%; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
     .animate-up { animation: fadeInUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -185,62 +200,114 @@ import { SocietyEvent } from '../../core/models/society-event.model';
 })
 export class EventListComponent implements OnInit {
   events: SocietyEvent[] = [];
-  filteredEvents: SocietyEvent[] = [];
+  
+  // Pagination details
+  currentPage = 0;
+  pageSize = 10;
+  totalPages = 0;
+  totalElements = 0;
+  
+  // Filters
   searchTerm: string = '';
-  currentCategory: string = 'all';
-  categories: string[] = ['all', 'cultural', 'festival', 'sports', 'meeting', 'charity'];
+  currentCategory: string = '';
+  categories: string[] = ['', 'cultural', 'festival', 'sports', 'meeting', 'charity'];
+  
+  isLoading = true;
+  isAdmin = false;
   defaultImageUrl = 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80';
 
-  // Track local RSVPs for demo
-  rsvpedEvents = new Set<number>();
-
-  constructor(private eventService: SocietyEventService) { }
+  constructor(
+    private eventService: SocietyEventService,
+    private authService: AuthService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit(): void {
-    this.eventService.getEvents().subscribe(events => {
-      this.events = events;
-      this.applyFilters();
+    this.authService.currentUser$.subscribe(user => {
+      this.isAdmin = user?.roles?.some(r => ['ADMIN', 'SUPER_ADMIN', 'SOCIETY_ADMIN'].includes(r)) || false;
     });
+    this.loadEvents();
+  }
+
+  loadEvents(): void {
+    this.isLoading = true;
+    
+    const request: EventListRequest = {
+      page: this.currentPage,
+      size: this.pageSize,
+      search: this.searchTerm,
+      category: this.currentCategory ? this.currentCategory.toUpperCase() : undefined,
+      sortBy: 'eventDate',
+      sortDirection: 'DESC'
+    };
+
+    this.eventService.getEvents(request)
+      .pipe(finalize(() => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe(pageData => {
+        if (pageData) {
+          this.events = pageData.content || [];
+          this.totalPages = pageData.totalPages || 0;
+          this.totalElements = pageData.totalElements || 0;
+        } else {
+          this.events = [];
+        }
+      });
+  }
+
+  changePage(newPage: number) {
+    if (newPage >= 0 && newPage < this.totalPages) {
+      this.currentPage = newPage;
+      this.loadEvents();
+    }
   }
 
   setCategory(cat: string): void {
     this.currentCategory = cat;
-    this.applyFilters();
-  }
-
-  resetFilters(): void {
-    this.searchTerm = '';
-    this.currentCategory = 'all';
-    this.applyFilters();
+    this.currentPage = 0; // reset to first page
+    this.loadEvents();
   }
 
   applyFilters(): void {
-    const searchStr = this.searchTerm.toLowerCase();
-    this.filteredEvents = this.events.filter(event => {
-      const matchesSearch =
-        event.title.toLowerCase().includes(searchStr) ||
-        event.location.toLowerCase().includes(searchStr) ||
-        event.description.toLowerCase().includes(searchStr);
-
-      const matchesCategory =
-        this.currentCategory === 'all' ||
-        event.category.toLowerCase() === this.currentCategory.toLowerCase();
-
-      return matchesSearch && matchesCategory;
-    });
+    this.currentPage = 0; // reset to first page
+    this.loadEvents();
   }
 
-  toggleRSVP(event: SocietyEvent): void {
-    if (this.rsvpedEvents.has(event.id)) {
-      this.rsvpedEvents.delete(event.id);
-      if (event.currentAttendees) event.currentAttendees--;
-    } else {
-      this.rsvpedEvents.add(event.id);
-      if (event.currentAttendees) event.currentAttendees++;
+  createEvent() {
+    this.router.navigate(['/events/create']);
+  }
+
+  editEvent(id: number | undefined) {
+    if (id) {
+      this.router.navigate(['/events/edit', id]);
     }
   }
 
-  isRSVPed(eventId: number): boolean {
-    return this.rsvpedEvents.has(eventId);
+  viewEvent(id: number | undefined) {
+    if (id) {
+      this.router.navigate(['/events/view', id]);
+    }
+  }
+
+  deleteEvent(id: number | undefined): void {
+    if (!id) return;
+    if (confirm('Are you sure you want to delete this event?')) {
+      this.eventService.deleteEvent(id).subscribe({
+        next: (success) => {
+          if (success) {
+            this.loadEvents();
+          } else {
+            alert('Failed to delete event.');
+          }
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Failed to delete event.');
+        }
+      });
+    }
   }
 }

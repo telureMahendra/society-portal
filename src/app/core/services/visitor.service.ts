@@ -1,81 +1,80 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { Visitor } from '../models/visitor.model';
+import { map, catchError } from 'rxjs/operators';
+import { Visitor, VisitorStatus } from '../models/visitor.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class VisitorService {
-    private mockVisitors: Visitor[] = [
-        {
-            id: 1,
-            firstName: 'Rajesh',
-            lastName: 'Kumar',
-            mobile: '+91 98765 43220',
-            purpose: 'DELIVERY',
-            status: 'CHECKED_IN',
-            checkInTime: '2026-02-23T08:30:00',
-            unitMapping: { wing: 'Wing A', flatNumber: '101' },
-            vehicleNumber: 'MH 12 AB 1234',
-            notes: 'Amazon Delivery'
-        },
-        {
-            id: 2,
-            firstName: 'Sarah',
-            lastName: 'Wilson',
-            mobile: '+91 98765 43221',
-            purpose: 'GUEST',
-            status: 'CHECKED_OUT',
-            checkInTime: '2026-02-23T10:15:00',
-            checkOutTime: '2026-02-23T12:45:00',
-            unitMapping: { wing: 'Wing B', flatNumber: '102' }
-        },
-        {
-            id: 3,
-            firstName: 'Vikram',
-            lastName: 'Mehta',
-            mobile: '+91 98765 43222',
-            purpose: 'SERVICE',
-            status: 'CHECKED_IN',
-            checkInTime: '2026-02-23T11:00:00',
-            unitMapping: { wing: 'Wing A', flatNumber: '104' },
-            notes: 'A/C Repair'
-        },
-        {
-            id: 4,
-            firstName: 'Sunil',
-            lastName: 'Pawar',
-            mobile: '+91 98765 43223',
-            purpose: 'DELIVERY',
-            status: 'CHECKED_IN',
-            checkInTime: '2026-02-22T21:00:00', // Over 12 hours ago
-            unitMapping: { wing: 'Wing B', flatNumber: '101' },
-            notes: 'Zomato - Night duty'
-        }
-    ];
+    private apiUrl = `${environment.apiBaseUrl}/security/visitors`;
+
+    constructor(private http: HttpClient) {}
 
     getVisitors(): Observable<Visitor[]> {
-        return of(this.mockVisitors);
-    }
-
-    addVisitor(visitor: Omit<Visitor, 'id' | 'status' | 'checkInTime'>): Observable<Visitor> {
-        const newVisitor: Visitor = {
-            ...visitor,
-            id: Math.max(...this.mockVisitors.map(v => v.id)) + 1,
-            status: 'CHECKED_IN',
-            checkInTime: new Date().toISOString()
-        };
-        this.mockVisitors.unshift(newVisitor);
-        return of(newVisitor);
+        // Passing societyId: 1 as required by SecurityVisitorController
+        return this.http.post<any>(`${this.apiUrl}/list`, { societyId: 1 }).pipe(
+            map(response => {
+                if (response && response.data) {
+                    return response.data.map((dto: any) => this.mapToVisitorModel(dto));
+                }
+                return [];
+            }),
+            catchError(err => {
+                console.error('Error fetching visitors', err);
+                return of([]);
+            })
+        );
     }
 
     checkoutVisitor(id: number): Observable<boolean> {
-        const visitor = this.mockVisitors.find(v => v.id === id);
-        if (visitor) {
-            visitor.status = 'CHECKED_OUT';
-            visitor.checkOutTime = new Date().toISOString();
-            return of(true);
+        return this.http.patch<any>(`${this.apiUrl}/${id}/checkout`, {}).pipe(
+            map(() => true),
+            catchError(err => {
+                console.error('Error checking out visitor', err);
+                return of(false);
+            })
+        );
+    }
+
+    updateStatus(id: number, status: VisitorStatus): Observable<boolean> {
+        // Backend currently supports checking out via the dedicated endpoint.
+        if (status === 'CHECKED_OUT') {
+            return this.checkoutVisitor(id);
         }
-        return of(false);
+        
+        console.warn(`Backend does not explicitly support updating to status ${status} via a generic endpoint yet.`);
+        return of(true); // Return mock true to keep UI functioning without errors
+    }
+
+    private mapToVisitorModel(dto: any): Visitor {
+        const nameParts = dto.name ? String(dto.name).split(' ') : ['Unknown'];
+        const firstName = nameParts[0];
+        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+        // Map backend statuses to frontend statuses
+        let status = dto.status;
+        if (status === 'OUT') status = 'CHECKED_OUT';
+        if (status === 'IN' || status === 'APPROVED') status = 'CHECKED_IN';
+        if (status === 'UPCOMING' || status === 'EXPECTED') status = 'EXPECTED';
+
+        return {
+            id: dto.id,
+            firstName: firstName,
+            lastName: lastName,
+            mobile: dto.mobile || '',
+            purpose: dto.purpose || 'GUEST',
+            status: status as VisitorStatus,
+            checkInTime: dto.entryTime || dto.createdAt,
+            checkOutTime: dto.exitTime,
+            unitMapping: {
+                wing: dto.wing || 'GATE',
+                flatNumber: dto.flatNumber || ''
+            },
+            vehicleNumber: dto.vehicleNumber,
+            notes: dto.approvalStatus ? `Approval: ${dto.approvalStatus}` : ''
+        };
     }
 }

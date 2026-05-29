@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentService } from '../../core/services/payment.service';
@@ -226,12 +226,13 @@ export class PaymentListComponent implements OnInit {
   currentFilter: string = 'all';
   statusFilters: string[] = ['all', 'completed', 'pending', 'failed', 'refunded'];
 
-  constructor(private paymentService: PaymentService) { }
+  constructor(private paymentService: PaymentService, private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
     this.paymentService.getPayments().subscribe(payments => {
       this.payments = payments;
       this.applyFilters();
+      this.cdr.detectChanges();
     });
   }
 

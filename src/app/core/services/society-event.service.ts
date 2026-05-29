@@ -1,68 +1,91 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { SocietyEvent } from '../models/society-event.model';
+import { map, catchError } from 'rxjs/operators';
+import { SocietyEvent, StandardResponse, Page, EventListRequest } from '../models/society-event.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class SocietyEventService {
-    private mockEvents: SocietyEvent[] = [
-        {
-            id: 1,
-            title: 'Holi Celebration 2024',
-            description: 'Join us for a vibrant celebration of Holi with colors, music, and traditional snacks. Fun for all ages!',
-            startDate: '2024-03-25T11:00:00Z',
-            endDate: '2024-03-25T16:00:00Z',
-            location: 'Central Park / Clubhouse Ground',
-            category: 'FESTIVAL',
-            status: 'UPCOMING',
-            organizer: 'Cultural Committee',
-            imageUrl: 'https://images.unsplash.com/photo-1590054790395-63ad0eeb30ca?auto=format&fit=crop&w=800&q=80',
-            currentAttendees: 120
-        },
-        {
-            id: 2,
-            title: 'Annual General Meeting (AGM)',
-            description: 'The mandatory Annual General Meeting to discuss society budget, maintenance updates, and new committee elections.',
-            startDate: '2024-03-24T10:00:00Z',
-            endDate: '2024-03-24T13:00:00Z',
-            location: 'Community Hall, 1st Floor',
-            category: 'MEETING',
-            status: 'UPCOMING',
-            organizer: 'Management Committee'
-        },
-        {
-            id: 3,
-            title: 'Inter-Society Cricket Tournament',
-            description: 'Cheer for our team in the final match of the annual cricket tournament against neighboring blocks.',
-            startDate: '2024-03-17T08:00:00Z',
-            endDate: '2024-03-17T18:00:00Z',
-            location: 'Main Sports Complex',
-            category: 'SPORTS',
-            status: 'UPCOMING',
-            organizer: 'Sports Hub',
-            imageUrl: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=800&q=80',
-            currentAttendees: 45
-        },
-        {
-            id: 4,
-            title: 'Blood Donation Camp',
-            description: 'In association with the Red Cross, we are organizing a blood donation drive. Your small act can save a life.',
-            startDate: '2024-02-15T09:00:00Z',
-            endDate: '2024-02-15T15:00:00Z',
-            location: 'Clubhouse Lobby',
-            category: 'CHARITY',
-            status: 'COMPLETED',
-            organizer: 'Welfare Committee',
-            currentAttendees: 85
-        }
-    ];
+    private adminUrl = `${environment.apiBaseUrl}/admin/events`;
+    private userUrl = `${environment.apiBaseUrl}/user/events`;
 
-    getEvents(): Observable<SocietyEvent[]> {
-        return of(this.mockEvents);
+    constructor(private http: HttpClient) {}
+
+    getEvents(request: EventListRequest): Observable<Page<SocietyEvent> | null> {
+        return this.http.post<StandardResponse<Page<SocietyEvent>>>(`${this.adminUrl}/list`, request).pipe(
+            map(res => res.data),
+            catchError(err => {
+                console.error('Error fetching events', err);
+                return of(null);
+            })
+        );
     }
 
     getEventById(id: number): Observable<SocietyEvent | undefined> {
-        return of(this.mockEvents.find(e => e.id === id));
+        return this.http.post<StandardResponse<SocietyEvent>>(`${this.adminUrl}/details`, { eventId: id }).pipe(
+            map(res => res.data),
+            catchError(() => of(undefined))
+        );
+    }
+
+    createEvent(event: Partial<SocietyEvent>, imageFile?: File): Observable<SocietyEvent> {
+        const payload = {
+            title: event.title,
+            description: event.description,
+            startDate: event.eventDate || event.startDate, // Map to eventDate for backend
+            endDate: event.endDate,
+            location: event.location,
+            category: event.category,
+            status: event.status,
+            organizer: event.organizer,
+            maxAttendees: event.currentAttendees || event.maxAttendees || 0
+        };
+
+        const formData = new FormData();
+        formData.append('data', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+        
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
+        return this.http.post<StandardResponse<SocietyEvent>>(`${this.adminUrl}/create`, formData).pipe(
+            map(res => res.data)
+        );
+    }
+
+    updateEvent(event: Partial<SocietyEvent>, imageFile?: File): Observable<SocietyEvent> {
+        const payload = {
+            eventId: event.id,
+            title: event.title,
+            description: event.description,
+            startDate: event.eventDate || event.startDate, // Map to eventDate for backend
+            endDate: event.endDate,
+            location: event.location,
+            category: event.category,
+            status: event.status,
+            organizer: event.organizer,
+            maxAttendees: event.currentAttendees || event.maxAttendees || 0
+        };
+
+        const formData = new FormData();
+        formData.append('data', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+        
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
+        return this.http.post<StandardResponse<SocietyEvent>>(`${this.adminUrl}/update`, formData).pipe(
+            map(res => res.data)
+        );
+    }
+
+    deleteEvent(id: number): Observable<boolean> {
+        return this.http.post<StandardResponse<void>>(`${this.adminUrl}/delete`, { eventId: id }).pipe(
+            map(() => true),
+            catchError(() => of(false))
+        );
     }
 }
