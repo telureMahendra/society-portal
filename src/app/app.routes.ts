@@ -63,6 +63,16 @@ export const routes: Routes = [
             },
             { path: 'units', component: SocietyUnitsComponent },
             { path: 'members', component: MemberListComponent },
+            {
+                path: 'redevelopment',
+                children: [
+                    { path: '', redirectTo: 'committee', pathMatch: 'full' },
+                    { path: 'management-committee', loadComponent: () => import('./features/redevelopment/management-committee.component').then(m => m.ManagementCommitteeComponent) },
+                    { path: 'committee', loadComponent: () => import('./features/platform-admin/pages/redevelopment/platform-redevelopment.component').then(m => m.PlatformRedevelopmentComponent) },
+                    { path: 'documents', loadComponent: () => import('./features/redevelopment/documents.component').then(m => m.RedevelopmentDocumentsComponent) },
+                    { path: 'notifications', loadComponent: () => import('./features/redevelopment/notifications.component').then(m => m.RedevelopmentNotificationsComponent) }
+                ]
+            },
             { path: 'visitors', component: VisitorListComponent }
         ]
     },

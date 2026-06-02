@@ -5,6 +5,7 @@ import { FederationManagementComponent } from './pages/federations/federation-ma
 import { SocietyManagementComponent } from './pages/societies/society-management.component';
 import { SubdomainManagerComponent } from './pages/subdomains/subdomain-manager.component';
 import { PlatformMonitoringComponent } from './pages/monitoring/platform-monitoring.component';
+import { PlatformRedevelopmentComponent } from './pages/redevelopment/platform-redevelopment.component';
 import { roleGuard } from '../../core/guards/role-guard';
 
 export const PLATFORM_ADMIN_ROUTES: Routes = [
@@ -19,6 +20,7 @@ export const PLATFORM_ADMIN_ROUTES: Routes = [
             { path: 'federations', component: FederationManagementComponent },
             { path: 'societies', component: SocietyManagementComponent },
             { path: 'subdomains', component: SubdomainManagerComponent },
+            { path: 'redevelopment', component: PlatformRedevelopmentComponent },
             { path: 'monitoring', component: PlatformMonitoringComponent }
         ]
     }

@@ -51,11 +51,11 @@ export class LoginComponent implements OnInit {
             const user = this.authService.currentUserValue;
             const subdomain = this.subdomainService.getSubdomain();
             const isPlatformSubdomain = subdomain === 'platform' || subdomain === 'admin';
-            const isLocalhost = window.location.hostname === 'localhost';
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname.endsWith('.localhost');
 
             if (user) {
                 console.log('LoginComponent: User found, redirecting');
-                // Platform admin can log in on platform subdomain OR localhost
+                // Platform admin can log in on platform subdomain OR any localhost subdomain
                 const canAccessPlatform = user.roles.includes('PLATFORM_ADMIN') && (isPlatformSubdomain || isLocalhost);
 
                 if (canAccessPlatform) {
@@ -90,7 +90,7 @@ export class LoginComponent implements OnInit {
                     const user = this.authService.currentUserValue;
                     const subdomain = this.subdomainService.getSubdomain();
                     const isPlatformSubdomain = subdomain === 'platform' || subdomain === 'admin';
-                    const isLocalhost = window.location.hostname === 'localhost';
+                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname.endsWith('.localhost');
 
                     if (user) {
                         const canAccessPlatform = user.roles.includes('PLATFORM_ADMIN') && (isPlatformSubdomain || isLocalhost);
