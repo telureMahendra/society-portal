@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 
 export interface Federation {
@@ -31,6 +32,12 @@ export interface Society {
     amenities?: string[];
     galleryUrls?: string[];
     isTownship?: boolean;
+    registrationNumber?: string;
+    registrationDate?: string;
+    panNumber?: string;
+    gstNumber?: string;
+    registrationDocUrl?: string;
+    panDocUrl?: string;
     status: 'ACTIVE' | 'INACTIVE' | 'DRAFT' | 'SUSPENDED';
     createdAt?: string;
 }
@@ -131,26 +138,63 @@ export class PlatformAdminService {
         return this.http.get<any>(`${this.apiUrl}/societies`, { params });
     }
 
-    createSociety(request: SocietyOnboardingRequest, logo?: File | null, banner?: File | null): Observable<SocietyOnboardingResponse> {
+    // Multi-step Onboarding APIs
+    createSocietyDraft(data: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/societies/draft`, data);
+    }
+
+    updateSocietyLegal(data: any): Observable<any> {
+        return this.http.put<any>(`${this.apiUrl}/societies/legal`, data);
+    }
+
+    uploadSocietyDocument(societyId: number, type: string, file: File): Observable<any> {
         const formData = new FormData();
-        formData.append('data', new Blob([JSON.stringify(request)], { type: 'application/json' }));
+        formData.append('societyId', societyId.toString());
+        formData.append('type', type);
+        formData.append('file', file);
+        return this.http.post<any>(`${this.apiUrl}/societies/documents`, formData);
+    }
 
-        if (logo) {
-            formData.append('logo', logo);
-        }
+    updateSocietyBranding(societyId: number, data: any, logo?: File | null, banner?: File | null): Observable<any> {
+        const formData = new FormData();
+        formData.append('data', new Blob([JSON.stringify({ societyId, ...data })], { type: 'application/json' }));
+        if (logo) formData.append('logo', logo);
+        if (banner) formData.append('banner', banner);
+        return this.http.put<any>(`${this.apiUrl}/societies/branding`, formData);
+    }
 
-        if (banner) {
-            formData.append('banner', banner);
-        }
+    assignSocietyAdminStep(data: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/societies/admin`, data);
+    }
 
-        return this.http.post<SocietyOnboardingResponse>(`${this.apiUrl}/societies`, formData);
+    submitSocietyOnboarding(data: { societyId: number, remark?: string }): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/societies/submit`, data);
     }
     updateSocietyStatus(id: number, status: string): Observable<void> {
         return this.http.patch<void>(`${this.apiUrl}/societies/${id}/status`, { status });
     }
 
     getSociety(id: number): Observable<Society> {
-        return this.http.get<Society>(`${this.apiUrl}/societies/${id}`);
+        return this.http.get<any>(`${this.apiUrl}/societies/${id}`).pipe(
+            map(data => {
+                const adminNames = data.adminName ? data.adminName.split(',').map((n: string) => n.trim()) : [];
+                return {
+                    ...data,
+                    isTownship: data.township,
+                    registrationNumber: data.legalDetails?.registrationNumber,
+                    registrationDate: data.legalDetails?.registrationDate,
+                    panNumber: data.legalDetails?.panNumber,
+                    gstNumber: data.legalDetails?.gstNumber,
+                    registrationDocUrl: data.legalDetails?.registrationDocUrl,
+                    panDocUrl: data.legalDetails?.panDocUrl,
+                    adminNames
+                } as Society;
+            })
+        );
+    }
+
+    getSocietyDocuments(id: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/societies/${id}/documents`);
     }
 
     assignSocietyAdmin(societyId: number, data: any): Observable<void> {

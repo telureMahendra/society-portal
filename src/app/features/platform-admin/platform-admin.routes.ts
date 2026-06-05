@@ -3,6 +3,8 @@ import { PlatformAdminLayoutComponent } from '../../layout/platform-admin-layout
 import { PlatformDashboardComponent } from './pages/dashboard/platform-dashboard.component';
 import { FederationManagementComponent } from './pages/federations/federation-management.component';
 import { SocietyManagementComponent } from './pages/societies/society-management.component';
+import { SocietyOnboardingWizard } from './pages/societies/society-onboarding-wizard/society-onboarding-wizard';
+import { SocietyDetails } from './pages/societies/society-details/society-details';
 import { SubdomainManagerComponent } from './pages/subdomains/subdomain-manager.component';
 import { PlatformMonitoringComponent } from './pages/monitoring/platform-monitoring.component';
 import { roleGuard } from '../../core/guards/role-guard';
@@ -18,6 +20,8 @@ export const PLATFORM_ADMIN_ROUTES: Routes = [
             { path: 'dashboard', component: PlatformDashboardComponent },
             { path: 'federations', component: FederationManagementComponent },
             { path: 'societies', component: SocietyManagementComponent },
+            { path: 'societies/create', component: SocietyOnboardingWizard },
+            { path: 'societies/:id', component: SocietyDetails },
             { path: 'subdomains', component: SubdomainManagerComponent },
             { path: 'monitoring', component: PlatformMonitoringComponent }
         ]

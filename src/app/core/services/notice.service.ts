@@ -58,7 +58,7 @@ export class NoticeService {
         );
     }
 
-    uploadAttachment(file: File): Observable<{ attachmentUrl: string; attachmentName: string; attachmentType: string }> {
+    uploadAttachment(file: File): Observable<{ attachmentUrl: string; attachmentName: string; attachmentType: string; fileSize: number }> {
         const formData = new FormData();
         formData.append('file', file);
         return this.http.post<{ success: boolean; data: any }>(`${this.adminUrl}/upload`, formData).pipe(

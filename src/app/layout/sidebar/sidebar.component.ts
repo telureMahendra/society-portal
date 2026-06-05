@@ -41,6 +41,12 @@ import { RouterModule } from '@angular/router';
             </a>
           </li>
           <li>
+            <a routerLink="/complaints" routerLinkActive="active">
+              <i class="fas fa-exclamation-circle"></i>
+              <span>Complaints</span>
+            </a>
+          </li>
+          <li>
             <a routerLink="/units" routerLinkActive="active">
               <i class="fas fa-building"></i>
               <span>Units</span>
@@ -57,6 +63,23 @@ import { RouterModule } from '@angular/router';
               <i class="fas fa-user-shield"></i>
               <span>Visitors</span>
             </a>
+          </li>
+          <li class="nav-group">
+            <div class="nav-group-title" (click)="toggleConfiguration()">
+              <div class="title-left">
+                <i class="fas fa-cogs"></i>
+                <span>Configuration</span>
+              </div>
+              <i class="fas" [ngClass]="isConfigurationOpen ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+            </div>
+            <ul class="sub-menu" [class.open]="isConfigurationOpen">
+              <li>
+                <a routerLink="/complaint-categories" routerLinkActive="active">
+                  <i class="fas fa-list-alt"></i>
+                  <span>Complaint Categories</span>
+                </a>
+              </li>
+            </ul>
           </li>
         </ul>
       </nav>
@@ -112,6 +135,60 @@ import { RouterModule } from '@angular/router';
         }
       }
     }
+
+    .nav-group-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.875rem 1.25rem;
+      color: #64748b;
+      cursor: pointer;
+      border-radius: 0.75rem;
+      font-weight: 500;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nav-group-title:hover {
+      background-color: #f1f5f9;
+      color: var(--primary-color, #2563eb);
+    }
+
+    .title-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .title-left i {
+      font-size: 1.1rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    .sub-menu {
+      list-style: none;
+      padding-left: 2.5rem;
+      padding-right: 1rem;
+      margin: 0;
+      display: none;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .sub-menu.open {
+      display: flex;
+    }
+
+    .sub-menu li a {
+      padding: 0.75rem 1rem;
+      font-size: 0.95rem;
+    }
   `]
 })
-export class SidebarComponent { }
+export class SidebarComponent {
+  isConfigurationOpen = false;
+
+  toggleConfiguration() {
+    this.isConfigurationOpen = !this.isConfigurationOpen;
+  }
+}

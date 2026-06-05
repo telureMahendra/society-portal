@@ -61,6 +61,18 @@ export const routes: Routes = [
                     { path: 'view/:id', component: EventViewComponent }
                 ]
             },
+            {
+                path: 'complaint-categories',
+                loadComponent: () => import('./features/complaints/categories/category-config.component').then(m => m.CategoryConfigComponent)
+            },
+            { 
+                path: 'complaints', 
+                children: [
+                    { path: '', loadComponent: () => import('./features/complaints/complaint-list.component').then(m => m.ComplaintListComponent) },
+                    { path: 'create', loadComponent: () => import('./features/complaints/complaint-create.component').then(m => m.ComplaintCreateComponent) },
+                    { path: 'view/:id', loadComponent: () => import('./features/complaints/complaint-view.component').then(m => m.ComplaintViewComponent) }
+                ]
+            },
             { path: 'units', component: SocietyUnitsComponent },
             { path: 'members', component: MemberListComponent },
             { path: 'visitors', component: VisitorListComponent }

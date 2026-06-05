@@ -1,0 +1,139 @@
+<div class="config-container animate-up">
+    <header class="page-header">
+        <div class="header-content">
+            <h1>Manage <span>Complaint Categories</span></h1>
+            <p>Configure dynamic categories for user complaints</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-primary" (click)="openAddModal()">
+                <i class="fas fa-plus"></i> Add Category
+            </button>
+        </div>
+    </header>
+
+    <!-- Filter Section -->
+    <div class="filter-section glass-card">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange($event)" placeholder="Search category name...">
+        </div>
+        <div class="filters">
+            <select [(ngModel)]="currentStatus" (ngModelChange)="setStatusFilter($event)" class="filter-select">
+                <option [ngValue]="null">All Statuses</option>
+                <option [ngValue]="true">Active</option>
+                <option [ngValue]="false">Inactive</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container glass-card">
+        <div *ngIf="isLoading" class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i> Loading...
+        </div>
+
+        <table *ngIf="!isLoading && categories.length > 0" class="data-table">
+            <thead>
+                <tr>
+                    <th>Display Order</th>
+                    <th>Category Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let category of categories">
+                    <td>{{ category.displayOrder }}</td>
+                    <td class="fw-bold">{{ category.categoryName }}</td>
+                    <td class="text-muted">{{ category.description || '-' }}</td>
+                    <td>
+                        <span class="status-badge" [ngClass]="category.active ? 'active' : 'inactive'">
+                            {{ category.active ? 'Active' : 'Inactive' }}
+                        </span>
+                    </td>
+                    <td class="actions-col">
+                        <button class="btn-icon" title="Edit" (click)="openEditModal(category)">
+                            <i class="fas fa-edit text-primary"></i>
+                        </button>
+                        <button class="btn-icon" [title]="category.active ? 'Deactivate' : 'Activate'" (click)="toggleStatus(category)">
+                            <i class="fas" [ngClass]="category.active ? 'fa-ban text-warning' : 'fa-check text-success'"></i>
+                        </button>
+                        <button class="btn-icon" title="Delete" (click)="deleteCategory(category)">
+                            <i class="fas fa-trash text-danger"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div *ngIf="!isLoading && categories.length === 0" class="empty-state">
+            <i class="fas fa-clipboard-list"></i>
+            <p>No categories found matching your criteria.</p>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!isLoading && totalPages > 1" class="pagination-controls">
+        <button class="btn btn-outline" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+            <i class="fas fa-chevron-left"></i> Prev
+        </button>
+        <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+        <button class="btn btn-outline" [disabled]="currentPage >= totalPages" (click)="changePage(currentPage + 1)">
+            Next <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-content glass-card animate-up" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>{{ isEditMode ? 'Edit' : 'Add' }} Category</h2>
+            <button class="btn-icon close-btn" (click)="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div *ngIf="submitError" class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> {{ submitError }}
+        </div>
+
+        <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()" class="form-layout">
+            <div class="form-group">
+                <label>Category Name <span class="required">*</span></label>
+                <input type="text" formControlName="categoryName" class="form-control" placeholder="e.g. Water Leakage">
+                <div class="error-msg" *ngIf="categoryForm.get('categoryName')?.touched && categoryForm.get('categoryName')?.invalid">
+                    Category Name is required.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea formControlName="description" class="form-control" rows="3" placeholder="Optional description..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group half">
+                    <label>Display Order <span class="required">*</span></label>
+                    <input type="number" formControlName="displayOrder" class="form-control">
+                </div>
+                
+                <div class="form-group half toggle-group">
+                    <label>Active Status</label>
+                    <label class="switch">
+                        <input type="checkbox" formControlName="active">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" [disabled]="categoryForm.invalid">
+                    {{ isEditMode ? 'Update' : 'Save' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

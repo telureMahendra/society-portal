@@ -1,0 +1,121 @@
+<div class="complaints-container animate-up">
+    <header class="page-header">
+        <div class="header-content">
+            <h1>{{ isAdmin ? 'Manage' : 'My' }} <span>Complaints</span></h1>
+            <p>Track and manage society complaints and requests</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-outline" (click)="loadComplaints()"><i class="fas fa-sync"></i> Refresh</button>
+            <button *ngIf="!isAdmin" class="btn btn-primary" routerLink="create"><i class="fas fa-plus"></i> Raise Complaint</button>
+        </div>
+    </header>
+
+    <!-- Admin Dashboard -->
+    <div *ngIf="isAdmin && dashboard" class="dashboard-stats grid">
+        <div class="stat-card glass-card total">
+            <i class="fas fa-inbox"></i>
+            <div class="stat-info">
+                <h3>Total</h3>
+                <h2>{{ dashboard.total }}</h2>
+            </div>
+        </div>
+        <div class="stat-card glass-card pending">
+            <i class="fas fa-clock"></i>
+            <div class="stat-info">
+                <h3>Pending</h3>
+                <h2>{{ dashboard.submitted + dashboard.underReview }}</h2>
+            </div>
+        </div>
+        <div class="stat-card glass-card active">
+            <i class="fas fa-tools"></i>
+            <div class="stat-info">
+                <h3>Active</h3>
+                <h2>{{ dashboard.accepted + dashboard.inProgress }}</h2>
+            </div>
+        </div>
+        <div class="stat-card glass-card resolved">
+            <i class="fas fa-check-circle"></i>
+            <div class="stat-info">
+                <h3>Resolved</h3>
+                <h2>{{ dashboard.resolved }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section glass-card">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange($event)" placeholder="Search by number, title or resident...">
+        </div>
+        <div class="filters">
+            <select [(ngModel)]="currentStatus" (ngModelChange)="setStatusFilter($event)" class="filter-select">
+                <option value="">All Statuses</option>
+                <option *ngFor="let status of statuses" [value]="status">{{ status | titlecase }}</option>
+            </select>
+            <select [(ngModel)]="currentPriority" (ngModelChange)="setPriorityFilter($event)" class="filter-select">
+                <option value="">All Priorities</option>
+                <option *ngFor="let prio of priorities" [value]="prio">{{ prio | titlecase }}</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="complaints-grid">
+        <div *ngFor="let _ of [1,2,3]" class="complaint-card skeleton-card glass-card">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text" style="width: 70%"></div>
+        </div>
+    </div>
+
+    <!-- Complaints Grid -->
+    <div *ngIf="!isLoading && complaints.length > 0" class="complaints-grid">
+        <div *ngFor="let complaint of complaints" class="complaint-card glass-card animate-up delay-1">
+            <div class="card-header">
+                <span class="complaint-number">#{{ complaint.complaintNumber }}</span>
+                <div class="tags">
+                    <span class="status-badge" [ngClass]="complaint.status.toLowerCase()">{{ complaint.status | titlecase }}</span>
+                    <span class="priority-badge" [ngClass]="complaint.priority.toLowerCase()">{{ complaint.priority | titlecase }}</span>
+                </div>
+            </div>
+            
+            <h3 class="title">{{ complaint.title }}</h3>
+            <p class="description truncate">{{ complaint.description }}</p>
+            
+            <div class="meta-info">
+                <div class="meta-item">
+                    <i class="fas fa-tag"></i> {{ complaint.categoryName }}
+                </div>
+                <div class="meta-item" *ngIf="isAdmin">
+                    <i class="fas fa-user"></i> {{ complaint.userName }} ({{ complaint.userFlat }})
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-calendar"></i> {{ complaint.createdAt | date:'mediumDate' }}
+                </div>
+            </div>
+            
+            <div class="card-actions">
+                <button class="btn btn-outline full-width" [routerLink]="['view', complaint.id]">View Details</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!isLoading && totalPages > 1" class="pagination-controls">
+        <button class="btn btn-outline" [disabled]="currentPage === 0" (click)="changePage(currentPage - 1)">
+            <i class="fas fa-chevron-left"></i> Prev
+        </button>
+        <span class="page-info">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+        <button class="btn btn-outline" [disabled]="currentPage >= totalPages - 1" (click)="changePage(currentPage + 1)">
+            Next <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && complaints.length === 0" class="empty-state glass-card">
+        <i class="fas fa-clipboard-list"></i>
+        <p>No complaints found matching your criteria.</p>
+        <button (click)="resetFilters()" class="btn btn-primary">Clear Filters</button>
+    </div>
+</div>

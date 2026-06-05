@@ -282,6 +282,7 @@ export class NoticeCreateComponent implements OnInit {
       request.attachmentUrl = this.uploadedAttachmentData.attachmentUrl;
       request.attachmentName = this.uploadedAttachmentData.attachmentName;
       request.attachmentType = this.uploadedAttachmentData.attachmentType;
+      request.fileSize = this.uploadedAttachmentData.fileSize;
     }
 
     this.noticeService.createNotice(request).subscribe({

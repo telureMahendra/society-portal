@@ -36,6 +36,7 @@ export interface Notice {
     attachmentUrl?: string;
     attachmentName?: string;
     attachmentType?: string;
+    fileSize?: number;
 }
 
 export interface NoticeListRequest {
@@ -67,6 +68,7 @@ export interface NoticeRequest {
     attachmentUrl?: string;
     attachmentName?: string;
     attachmentType?: string;
+    fileSize?: number;
 }
 
 export interface NoticeUpdateRequest extends NoticeRequest {

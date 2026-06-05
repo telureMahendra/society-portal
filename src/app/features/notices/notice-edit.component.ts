@@ -245,7 +245,8 @@ export class NoticeEditComponent implements OnInit {
             this.existingAttachment = {
               name: notice.attachmentName || 'Attachment',
               url: notice.attachmentUrl,
-              type: notice.attachmentType
+              type: notice.attachmentType,
+              size: notice.fileSize
             };
           }
           
@@ -343,10 +344,12 @@ export class NoticeEditComponent implements OnInit {
       request.attachmentUrl = this.uploadedAttachmentData.attachmentUrl;
       request.attachmentName = this.uploadedAttachmentData.attachmentName;
       request.attachmentType = this.uploadedAttachmentData.attachmentType;
+      request.fileSize = this.uploadedAttachmentData.fileSize;
     } else if (this.existingAttachment) {
       request.attachmentUrl = this.existingAttachment.url;
       request.attachmentName = this.existingAttachment.name;
       request.attachmentType = this.existingAttachment.type;
+      request.fileSize = this.existingAttachment.size;
     } else {
       // Attachment was removed entirely
       request.attachmentUrl = '';

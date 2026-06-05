@@ -1,12 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PlatformService, Society } from '../../../services/platform';
+import { PlatformAdminService } from '../../../services/platform-admin.service';
 
 @Component({
   selector: 'app-society-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './society-list.html',
   styleUrl: './society-list.scss',
 })
@@ -23,7 +24,25 @@ export class SocietyList implements OnInit {
   cities: string[] = [];
   federations: string[] = [];
 
-  constructor(private platformService: PlatformService) { }
+  showAdminModal = false;
+  adminForm: FormGroup;
+  selectedSociety: Society | null = null;
+  adminSubmitting = false;
+
+  private fb = inject(FormBuilder);
+  private platformAdminService = inject(PlatformAdminService);
+
+  constructor(private platformService: PlatformService) {
+    this.adminForm = this.fb.group({
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      mobile: ['', Validators.required],
+      username: [''],
+      passwordOption: ['mail'],
+      password: ['']
+    });
+  }
 
   ngOnInit() {
     this.loadSocieties();
@@ -77,6 +96,45 @@ export class SocietyList implements OnInit {
     this.platformService.updateSocietyStatus(society.id, newStatus).subscribe({
       next: () => society.status = newStatus,
       error: () => society.status = newStatus // For mock demo
+    });
+  }
+
+  openAddAdminModal(society: Society) {
+    this.selectedSociety = society;
+    this.adminForm.reset({ passwordOption: 'mail' });
+    this.showAdminModal = true;
+  }
+
+  closeAdminModal() {
+    this.showAdminModal = false;
+    this.selectedSociety = null;
+  }
+
+  submitAdmin() {
+    if (this.adminForm.invalid || !this.selectedSociety) return;
+    this.adminSubmitting = true;
+    const formVal = this.adminForm.value;
+    const request: any = {
+      societyId: this.selectedSociety.id,
+      firstName: formVal.firstName,
+      lastName: formVal.lastName,
+      email: formVal.email,
+      mobile: formVal.mobile,
+      username: formVal.username,
+      sendPasswordViaEmail: formVal.passwordOption === 'mail',
+      password: formVal.passwordOption === 'manual' ? formVal.password : null
+    };
+
+    this.platformAdminService.assignSocietyAdminStep(request).subscribe({
+      next: () => {
+        this.adminSubmitting = false;
+        this.closeAdminModal();
+        alert('Admin added successfully!');
+      },
+      error: (err: any) => {
+        this.adminSubmitting = false;
+        alert(err.error?.message || 'Failed to add admin');
+      }
     });
   }
 }

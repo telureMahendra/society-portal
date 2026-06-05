@@ -1,0 +1,207 @@
+<div class="page-container" *ngIf="!loading && society">
+  <div class="page-header">
+    <div class="header-content">
+      <button class="btn btn-icon btn-back" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div>
+        <h1 class="page-title">{{ society.name }}</h1>
+        <p class="page-subtitle">
+          Code: {{ society.code }} &bull; Subdomain: {{ society.subdomain }} &bull; 
+          <span class="badge badge-status" [ngClass]="getStatusClass(society.status)">
+            {{ society.status }}
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs-header">
+    <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Overview</button>
+    <button class="tab-btn" [class.active]="activeTab === 'infrastructure'" (click)="setTab('infrastructure')">Infrastructure</button>
+    <button class="tab-btn" [class.active]="activeTab === 'legal'" (click)="setTab('legal')">Legal & Docs</button>
+    <button class="tab-btn" [class.active]="activeTab === 'admin'" (click)="setTab('admin')">Admin</button>
+    <button class="tab-btn" [class.active]="activeTab === 'audit'" (click)="setTab('audit')">Audit Log</button>
+  </div>
+
+  <div class="tab-content">
+    
+    <!-- Overview Tab -->
+    <div class="tab-pane" *ngIf="activeTab === 'overview'">
+      <div class="details-card">
+        <h3>Basic Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Federation</span>
+            <span class="value">{{ society.federationName || 'None' }}</span>
+          </div>
+          <div class="info-item full">
+            <span class="label">Description</span>
+            <span class="value">{{ society.description || 'No description provided.' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="details-card">
+        <h3>Location</h3>
+        <div class="info-grid">
+          <div class="info-item full">
+            <span class="label">Address</span>
+            <span class="value">{{ society.address || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">City</span>
+            <span class="value">{{ society.city || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">State</span>
+            <span class="value">{{ society.state || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Country</span>
+            <span class="value">{{ society.country || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Pincode</span>
+            <span class="value">{{ society.pincode || '-' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Infrastructure Tab -->
+    <div class="tab-pane" *ngIf="activeTab === 'infrastructure'">
+      <div class="details-card">
+        <h3>Building & Infrastructure</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Total Buildings</span>
+            <span class="value">{{ society.totalBuildings || 0 }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Total Flats</span>
+            <span class="value">{{ society.totalFlats || 0 }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Type</span>
+            <span class="value">{{ society.isTownship ? 'Township' : 'Standard Society' }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="details-card" *ngIf="society.amenities && society.amenities.length > 0">
+        <h3>Amenities</h3>
+        <div class="amenities-list">
+          <span class="amenity-tag" *ngFor="let am of society.amenities">
+            <i class="fas fa-check-circle"></i> {{ am }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legal & Docs Tab -->
+    <div class="tab-pane" *ngIf="activeTab === 'legal'">
+      <div class="details-card">
+        <h3>Registration Details</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Registration Number</span>
+            <span class="value">{{ society.registrationNumber || 'Not provided' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Registration Date</span>
+            <span class="value">{{ (society.registrationDate | date:'mediumDate') || 'Not provided' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">PAN Number</span>
+            <span class="value">{{ society.panNumber || 'Not provided' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">GST Number</span>
+            <span class="value">{{ society.gstNumber || 'Not provided' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="details-card">
+        <h3>Uploaded Documents</h3>
+        <div class="docs-grid">
+          <div class="doc-card" *ngIf="society.registrationDocUrl">
+            <i class="fas fa-file-pdf doc-icon"></i>
+            <div class="doc-info">
+              <span class="doc-name">Registration Certificate</span>
+              <a [href]="society.registrationDocUrl" target="_blank" class="doc-link">View Document</a>
+            </div>
+          </div>
+          <div class="doc-card" *ngIf="society.panDocUrl">
+            <i class="fas fa-file-image doc-icon"></i>
+            <div class="doc-info">
+              <span class="doc-name">PAN Card</span>
+              <a [href]="society.panDocUrl" target="_blank" class="doc-link">View Document</a>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="!society.registrationDocUrl && !society.panDocUrl">
+            <i class="fas fa-folder-open"></i>
+            <p>No documents uploaded</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Tab -->
+    <div class="tab-pane" *ngIf="activeTab === 'admin'">
+      <div class="details-card">
+        <h3>Assigned Administrators</h3>
+        <div class="admin-list" *ngIf="society.adminNames && society.adminNames.length > 0">
+          <div class="admin-card" *ngFor="let name of society.adminNames">
+            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="admin-info">
+              <span class="admin-name">{{ name }}</span>
+              <span class="admin-role">Primary Admin</span>
+            </div>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="!society.adminNames || society.adminNames.length === 0">
+          <i class="fas fa-users-slash"></i>
+          <p>No administrators assigned yet.</p>
+          <p class="sub-text">Administrators can be assigned from the list view actions.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audit Tab -->
+    <div class="tab-pane" *ngIf="activeTab === 'audit'">
+      <div class="details-card">
+        <h3>Audit Log</h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-icon bg-primary"><i class="fas fa-plus"></i></div>
+            <div class="timeline-content">
+              <h4>Society Created</h4>
+              <p class="timeline-date">{{ (society.createdAt | date:'medium') || 'Just now' }}</p>
+            </div>
+          </div>
+          <div class="timeline-item" *ngIf="society.status === 'ACTIVE'">
+            <div class="timeline-icon bg-success"><i class="fas fa-check"></i></div>
+            <div class="timeline-content">
+              <h4>Activated</h4>
+              <p class="timeline-date">System Action</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="loading-state" *ngIf="loading">
+  <i class="fas fa-spinner fa-spin fa-2x"></i>
+  <p>Loading details...</p>
+</div>
+
+<div class="error-state" *ngIf="error">
+  <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+  <p>{{ error }}</p>
+  <button class="btn btn-secondary" (click)="goBack()">Go Back</button>
+</div>

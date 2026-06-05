@@ -1,0 +1,240 @@
+<div class="page-container wizard-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Onboard Society</h1>
+      <p class="page-subtitle">Complete the steps below to onboard a new society.</p>
+    </div>
+    <button class="btn btn-cancel" (click)="cancel()">
+      <i class="fas fa-times"></i> Cancel
+    </button>
+  </div>
+
+  <div class="stepper-header">
+    <div class="step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+      <div class="step-circle">1</div>
+      <div class="step-label">Basic Info</div>
+    </div>
+    <div class="stepper-line" [class.completed]="currentStep > 1"></div>
+    <div class="step" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
+      <div class="step-circle">2</div>
+      <div class="step-label">Address</div>
+    </div>
+    <div class="stepper-line" [class.completed]="currentStep > 2"></div>
+    <div class="step" [class.active]="currentStep === 3" [class.completed]="currentStep > 3">
+      <div class="step-circle">3</div>
+      <div class="step-label">Infra</div>
+    </div>
+    <div class="stepper-line" [class.completed]="currentStep > 3"></div>
+    <div class="step" [class.active]="currentStep === 4" [class.completed]="currentStep > 4">
+      <div class="step-circle">4</div>
+      <div class="step-label">Legal</div>
+    </div>
+    <div class="stepper-line" [class.completed]="currentStep > 4"></div>
+    <div class="step" [class.active]="currentStep === 5" [class.completed]="currentStep > 5">
+      <div class="step-circle">5</div>
+      <div class="step-label">Docs</div>
+    </div>
+    <div class="stepper-line" [class.completed]="currentStep > 5"></div>
+    <div class="step" [class.active]="currentStep === 6" [class.completed]="currentStep > 6">
+      <div class="step-circle">6</div>
+      <div class="step-label">Branding</div>
+    </div>
+    <div class="stepper-line" [class.completed]="currentStep > 6"></div>
+    <div class="step" [class.active]="currentStep === 7" [class.completed]="currentStep > 7">
+      <div class="step-circle">7</div>
+      <div class="step-label">Admin</div>
+    </div>
+  </div>
+
+  <div class="flash success" *ngIf="success">{{ success }}</div>
+  <div class="flash error" *ngIf="error">{{ error }}</div>
+
+  <div class="wizard-content">
+    <!-- Step 1: Basic Info -->
+    <div *ngIf="currentStep === 1" [formGroup]="step1Form" class="step-pane">
+      <h3>Basic Society Information</h3>
+      <div class="grid">
+        <div class="form-group">
+          <label>Society Name *</label>
+          <input class="form-control" formControlName="name" type="text" placeholder="e.g. Green Valley">
+        </div>
+        <div class="form-group">
+          <label>Society Code *</label>
+          <input class="form-control" formControlName="code" type="text" placeholder="e.g. GV_001" (input)="onCodeInput($event)">
+        </div>
+        <div class="form-group">
+          <label>Requested Subdomain *</label>
+          <input class="form-control" formControlName="requestedSubdomain" type="text" placeholder="greenvalley">
+        </div>
+        <div class="form-group">
+          <label>Federation</label>
+          <select class="form-control" formControlName="federationId">
+            <option [ngValue]="null">None</option>
+            <option *ngFor="let fed of federations" [value]="fed.id">{{ fed.name }}</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Description</label>
+          <textarea class="form-control" formControlName="description" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Address -->
+    <div *ngIf="currentStep === 2" [formGroup]="step2Form" class="step-pane">
+      <h3>Address Details</h3>
+      <div class="grid">
+        <div class="form-group full">
+          <label>Full Address *</label>
+          <textarea class="form-control" formControlName="address" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>City *</label>
+          <input class="form-control" formControlName="city" type="text">
+        </div>
+        <div class="form-group">
+          <label>State *</label>
+          <input class="form-control" formControlName="state" type="text">
+        </div>
+        <div class="form-group">
+          <label>Country *</label>
+          <input class="form-control" formControlName="country" type="text">
+        </div>
+        <div class="form-group">
+          <label>Pincode *</label>
+          <input class="form-control" formControlName="pincode" type="text">
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Infrastructure -->
+    <div *ngIf="currentStep === 3" [formGroup]="step3Form" class="step-pane">
+      <h3>Infrastructure</h3>
+      <div class="grid">
+        <div class="form-group">
+          <label>Total Buildings</label>
+          <input class="form-control" formControlName="totalBuildings" type="number">
+        </div>
+        <div class="form-group">
+          <label>Total Flats</label>
+          <input class="form-control" formControlName="totalFlats" type="number">
+        </div>
+        <div class="form-group full">
+          <label>Amenities (Comma separated)</label>
+          <input class="form-control" formControlName="amenitiesInput" type="text" placeholder="Gym, Pool, Park...">
+        </div>
+        <div class="form-group checkbox">
+          <label>
+            <input type="checkbox" formControlName="isTownship">
+            Township
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Legal & Registration -->
+    <div *ngIf="currentStep === 4" [formGroup]="step4Form" class="step-pane">
+      <h3>Legal Details & Registration</h3>
+      <div class="grid">
+        <div class="form-group">
+          <label>Registration Number</label>
+          <input class="form-control" formControlName="registrationNumber" type="text">
+        </div>
+        <div class="form-group">
+          <label>Registration Date</label>
+          <input class="form-control" formControlName="registrationDate" type="date">
+        </div>
+        <div class="form-group">
+          <label>PAN Number</label>
+          <input class="form-control" formControlName="panNumber" type="text">
+        </div>
+        <div class="form-group">
+          <label>GST Number</label>
+          <input class="form-control" formControlName="gstNumber" type="text">
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Documents -->
+    <div *ngIf="currentStep === 5" class="step-pane">
+      <h3>Supporting Documents</h3>
+        <div class="grid">
+          <div class="form-group">
+            <label>Registration Certificate (PDF/Image)</label>
+            <input type="file" class="form-control" (change)="onDocumentSelected($event, 'REGISTRATION_CERTIFICATE')">
+            <small *ngIf="getDocumentName('REGISTRATION_CERTIFICATE')" style="color: green;">
+              Already uploaded: {{ getDocumentName('REGISTRATION_CERTIFICATE') }}
+            </small>
+          </div>
+          <div class="form-group">
+            <label>PAN Card (PDF/Image)</label>
+            <input type="file" class="form-control" (change)="onDocumentSelected($event, 'PAN_CARD')">
+            <small *ngIf="getDocumentName('PAN_CARD')" style="color: green;">
+              Already uploaded: {{ getDocumentName('PAN_CARD') }}
+            </small>
+          </div>
+        </div>
+    </div>
+
+    <!-- Step 6: Branding -->
+    <div *ngIf="currentStep === 6" [formGroup]="step6Form" class="step-pane">
+      <h3>Society Branding</h3>
+      <div class="grid">
+        <div class="form-group">
+          <label>Primary Color</label>
+          <input class="form-control color-picker" formControlName="primaryColor" type="color">
+        </div>
+        <div class="form-group">
+          <label>Secondary Color</label>
+          <input class="form-control color-picker" formControlName="secondaryColor" type="color">
+        </div>
+        <div class="form-group">
+          <label>Logo (png/jpeg/webp, max 2MB)</label>
+          <input type="file" class="form-control" (change)="onImageSelected($event, 'logo')" accept="image/*">
+        </div>
+        <div class="form-group">
+          <label>Banner (png/jpeg/webp, max 5MB)</label>
+          <input type="file" class="form-control" (change)="onImageSelected($event, 'banner')" accept="image/*">
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 7: Administrator -->
+    <div *ngIf="currentStep === 7" [formGroup]="step7Form" class="step-pane">
+      <h3>Assign Society Administrator</h3>
+      <p class="text-muted mb-4">This user will receive login credentials to manage the society.</p>
+      
+      <div class="grid">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input class="form-control" formControlName="firstName" type="text">
+        </div>
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input class="form-control" formControlName="lastName" type="text">
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input class="form-control" formControlName="email" type="email">
+        </div>
+        <div class="form-group">
+          <label>Mobile Number *</label>
+          <input class="form-control" formControlName="mobile" type="text">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wizard-actions">
+    <button *ngIf="currentStep > 1" class="btn btn-secondary" (click)="prevStep()" [disabled]="loading">Back</button>
+    <div style="flex-grow: 1;"></div>
+    <button *ngIf="currentStep < 7" class="btn btn-primary" (click)="nextStep()" [disabled]="loading">
+      <i class="fas fa-spinner fa-spin" *ngIf="loading"></i> 
+      Save & Continue
+    </button>
+    <button *ngIf="currentStep === 7" class="btn btn-success" (click)="submitOnboarding()" [disabled]="loading || step7Form.invalid">
+      <i class="fas fa-spinner fa-spin" *ngIf="loading"></i> 
+      Submit Registration
+    </button>
+  </div>
+</div>

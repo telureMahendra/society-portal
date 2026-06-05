@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
@@ -99,12 +100,26 @@ import { ApiError } from '../../../../core/interceptors/api-error.interceptor';
               </td>
               <td>
                 <div class="actions-group">
-                  <button class="btn-icon" (click)="viewDetails(society)" title="View Details">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <button class="btn-icon" (click)="toggleStatus(society)" [disabled]="listLoading" [title]="society.status === 'ACTIVE' ? 'Deactivate' : 'Activate'">
-                    <i class="fas" [ngClass]="society.status === 'ACTIVE' ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
-                  </button>
+                  <ng-container *ngIf="society.status === 'DRAFT'">
+                     <button class="btn btn-sm btn-outline-primary" (click)="resumeOnboarding(society)" title="Resume Onboarding">
+                       Resume Onboarding
+                     </button>
+                  </ng-container>
+                  <ng-container *ngIf="society.status !== 'DRAFT'">
+                    <button class="btn-icon" (click)="viewDetails(society)" title="View Details">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn-icon" (click)="editSociety(society)" title="Edit Society">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                      <button class="btn-icon" (click)="toggleStatus(society)" [disabled]="listLoading" 
+[title]="society.status === 'ACTIVE' ? 'Deactivate' : 'Activate'">
+                        <i class="fas" [ngClass]="society.status === 'ACTIVE' ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+                      </button>
+                      <button class="btn-icon" (click)="openAdminModal(society)" title="Add Admin">
+                        <i class="fas fa-user-plus"></i>
+                      </button>
+                    </ng-container>
                 </div>
               </td>
             </tr>
@@ -112,155 +127,6 @@ import { ApiError } from '../../../../core/interceptors/api-error.interceptor';
           </tbody>
         </table>
       </div>
-
-      <div class="modal-backdrop" *ngIf="showOnboardingModal">
-        <div class="modal-dialog">
-          <div class="modal-header">
-            <h2>Society Onboarding</h2>
-            <button type="button" class="close-btn" (click)="closeOnboardingModal()">&times;</button>
-          </div>
-
-          <form [formGroup]="onboardingForm" (ngSubmit)="submitOnboarding()" class="modal-form">
-            <div class="grid">
-              <div class="form-group">
-                <label>Name *</label>
-                <input class="form-control" formControlName="name" type="text">
-              </div>
-              <div class="form-group">
-                <label>Code *</label>
-                <input class="form-control" formControlName="code" type="text" placeholder="ABC_001">
-              </div>
-              <div class="form-group">
-                <label>Requested Subdomain *</label>
-                <input class="form-control" formControlName="requestedSubdomain" type="text" placeholder="my-society">
-              </div>
-              <div class="form-group">
-                <label>Federation</label>
-                <select class="form-control" formControlName="federationId">
-                  <option [ngValue]="null">None</option>
-                  <option *ngFor="let federation of federations" [ngValue]="federation.id">{{ federation.name }}</option>
-                </select>
-              </div>
-              <div class="form-group full">
-                <label>Description</label>
-                <textarea class="form-control" rows="2" formControlName="description"></textarea>
-              </div>
-              <div class="form-group full">
-                <label>Address</label>
-                <textarea class="form-control" rows="2" formControlName="address"></textarea>
-              </div>
-              <div class="form-group">
-                <label>City</label>
-                <input class="form-control" formControlName="city" type="text">
-              </div>
-              <div class="form-group">
-                <label>State</label>
-                <input class="form-control" formControlName="state" type="text">
-              </div>
-              <div class="form-group">
-                <label>Country</label>
-                <input class="form-control" formControlName="country" type="text">
-              </div>
-              <div class="form-group">
-                <label>Pincode</label>
-                <input class="form-control" formControlName="pincode" type="text" placeholder="6 digits">
-              </div>
-              <div class="form-group">
-                <label>Total Buildings</label>
-                <input class="form-control" formControlName="totalBuildings" type="number">
-              </div>
-              <div class="form-group">
-                <label>Total Flats</label>
-                <input class="form-control" formControlName="totalFlats" type="number">
-              </div>
-              <div class="form-group full">
-                <label>Amenities (Comma separated)</label>
-                <input class="form-control" formControlName="amenitiesInput" type="text" placeholder="Gym, Pool, Park...">
-              </div>
-              <div class="form-group full checkbox">
-                <label>
-                  <input formControlName="isTownship" type="checkbox">
-                  Township
-                </label>
-              </div>
-              <div class="form-group">
-                <label>Logo (png/jpeg/webp, max 2MB)</label>
-                <input class="form-control" type="file" accept="image/png,image/jpeg,image/webp" (change)="onFileSelected($event, 'logo')">
-              </div>
-              <div class="form-group">
-                <label>Banner (png/jpeg/webp, max 5MB)</label>
-                <input class="form-control" type="file" accept="image/png,image/jpeg,image/webp" (change)="onFileSelected($event, 'banner')">
-              </div>
-            </div>
-
-            <div class="validation" *ngIf="saveError">{{ saveError }}</div>
-
-            <div class="modal-actions">
-              <button type="button" class="btn btn-secondary" (click)="closeOnboardingModal()">Cancel</button>
-              <button type="submit" class="btn btn-primary" [disabled]="onboardingForm.invalid || saveLoading">
-                {{ saveLoading ? 'Saving...' : 'Create Society' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-      <div class="modal-backdrop" *ngIf="showDetailsModal">
-        <div class="modal-dialog details-modal">
-          <div class="modal-header">
-            <h2>Society Details: {{ selectedSociety?.name }}</h2>
-            <button type="button" class="close-btn" (click)="closeDetailsModal()">&times;</button>
-          </div>
-          <div class="modal-body overflow-auto p-4">
-            <div class="details-grid">
-              <div class="detail-section full">
-                <h3>Basic Information</h3>
-                <div class="info-grid">
-                  <div class="info-item"><strong>Code:</strong> {{ selectedSociety?.code }}</div>
-                  <div class="info-item"><strong>Subdomain:</strong> {{ selectedSociety?.subdomain }}</div>
-                  <div class="info-item"><strong>Federation:</strong> {{ selectedSociety?.federationName || 'None' }}</div>
-                  <div class="info-item"><strong>Status:</strong> <span class="badge badge-status" [ngClass]="getStatusClass(selectedSociety?.status)">{{ selectedSociety?.status }}</span></div>
-                </div>
-              </div>
-
-              <div class="detail-section">
-                <h3>Location</h3>
-                <p>{{ selectedSociety?.address }}</p>
-                <p>{{ selectedSociety?.city }}, {{ selectedSociety?.state }}, {{ selectedSociety?.country }} - {{ selectedSociety?.pincode }}</p>
-              </div>
-
-              <div class="detail-section">
-                <h3>Infrastructure</h3>
-                <div class="info-grid">
-                  <div class="info-item"><strong>Buildings:</strong> {{ selectedSociety?.totalBuildings }}</div>
-                  <div class="info-item"><strong>Flats:</strong> {{ selectedSociety?.totalFlats }}</div>
-                  <div class="info-item"><strong>Township:</strong> {{ selectedSociety?.isTownship ? 'Yes' : 'No' }}</div>
-                </div>
-              </div>
-
-              <div class="detail-section full" *ngIf="selectedSociety?.amenities?.length">
-                <h3>Amenities</h3>
-                <div class="amenities-list">
-                  <span class="amenity-tag" *ngFor="let am of selectedSociety?.amenities">{{ am }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="admin-section mt-4 pt-4 border-top">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="m-0">Society Admin</h3>
-                <button class="btn btn-sm btn-outline-primary" (click)="openAdminModal()">
-                  <i class="fas fa-user-shield"></i> Assign Admin
-                </button>
-              </div>
-              <p class="text-muted small">Manage the primary administrator for this society.</p>
-            </div>
-          </div>
-          <div class="modal-actions p-3 bg-light">
-            <button class="btn btn-secondary" (click)="closeDetailsModal()">Close</button>
-          </div>
-        </div>
-      </div>
-
       <!-- Admin Assignment Modal -->
       <div class="modal-backdrop" *ngIf="showAdminModal" style="z-index: 1001;">
         <div class="modal-dialog small-modal">
@@ -268,23 +134,48 @@ import { ApiError } from '../../../../core/interceptors/api-error.interceptor';
             <h2>Assign Society Admin</h2>
             <button type="button" class="close-btn" (click)="closeAdminModal()">&times;</button>
           </div>
-          <form [formGroup]="adminForm" (ngSubmit)="submitAdminAssignment()" class="modal-form">
-            <div class="form-group">
-              <label>Full Name *</label>
-              <input class="form-control" formControlName="name" type="text" placeholder="John Doe">
-            </div>
-            <div class="form-group">
-              <label>Mobile *</label>
-              <input class="form-control" formControlName="mobile" type="text" placeholder="10 digits">
-            </div>
-            <div class="form-group">
-              <label>Email *</label>
-              <input class="form-control" formControlName="email" type="email" placeholder="john@example.com">
-            </div>
-            <div class="form-group">
-              <label>Initial Password *</label>
-              <input class="form-control" formControlName="password" type="password" placeholder="Min 6 characters">
-            </div>
+            <form [formGroup]="adminForm" (ngSubmit)="submitAdminAssignment()" class="modal-form">
+              <div class="grid">
+                <div class="form-group">
+                  <label>First Name *</label>
+                  <input class="form-control" formControlName="firstName" type="text" placeholder="John">
+                </div>
+                <div class="form-group">
+                  <label>Last Name *</label>
+                  <input class="form-control" formControlName="lastName" type="text" placeholder="Doe">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Email *</label>
+                <input class="form-control" formControlName="email" type="email" placeholder="john@example.com">
+              </div>
+              <div class="grid">
+                <div class="form-group">
+                  <label>Mobile *</label>
+                  <input class="form-control" formControlName="mobile" type="text" placeholder="10 digits">
+                </div>
+                <div class="form-group">
+                  <label>Username (Optional)</label>
+                  <input class="form-control" formControlName="username" type="text" placeholder="johndoe">
+                </div>
+              </div>
+              <div class="form-group full">
+                <label>Password Assignment</label>
+                <div class="d-flex" style="gap: 1rem;">
+                  <div class="form-group checkbox">
+                    <input type="radio" formControlName="passwordOption" id="pwdMail" value="mail">
+                    <label for="pwdMail">Send via Email</label>
+                  </div>
+                  <div class="form-group checkbox">
+                    <input type="radio" formControlName="passwordOption" id="pwdManual" value="manual">
+                    <label for="pwdManual">Set Manually</label>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group full" *ngIf="adminForm.get('passwordOption')?.value === 'manual'">
+                <label>Initial Password *</label>
+                <input class="form-control" formControlName="password" type="password" placeholder="Min 6 characters">
+              </div>
 
             <div class="validation" *ngIf="adminError">{{ adminError }}</div>
 
@@ -342,16 +233,7 @@ import { ApiError } from '../../../../core/interceptors/api-error.interceptor';
     .btn-icon i { font-size: 0.9rem; }
     .actions-group { display: flex; gap: 0.5rem; }
 
-    .details-modal { width: min(800px, 100%); }
-    .small-modal { width: min(450px, 100%); }
-
-    .details-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-    .detail-section h3 { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin: 0 0 0.75rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.4rem; }
-    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
-    .info-item { font-size: 0.88rem; color: #475569; }
-    .info-item strong { color: #0f172a; margin-right: 0.4rem; }
-    .amenities-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-    .amenity-tag { background: #f1f5f9; color: #475569; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 500; }
+    .actions-group { display: flex; gap: 0.5rem; }
 
     .mt-4 { margin-top: 1.5rem; }
     .pt-4 { padding-top: 1.5rem; }
@@ -438,13 +320,15 @@ export class SocietyManagementComponent implements OnInit {
   });
 
   adminForm = this.fb.group({
-    name: ['', [Validators.required]],
+    firstName: ['', [Validators.required]],
+    lastName: ['', [Validators.required]],
     mobile: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]]
+    username: [''],
+    passwordOption: ['mail'],
+    password: ['']
   });
 
-  showDetailsModal = false;
   showAdminModal = false;
   selectedSociety: Society | null = null;
 
@@ -532,7 +416,11 @@ export class SocietyManagementComponent implements OnInit {
       next: () => {
         society.status = newStatus;
         this.successMessage = `Society status updated to ${newStatus}.`;
-        setTimeout(() => this.successMessage = '', 2500);
+        this.cdr.detectChanges();
+        setTimeout(() => { 
+          this.successMessage = '';
+          this.cdr.detectChanges();
+        }, 2500);
       },
       error: (error: ApiError) => {
         this.listError = `Status update failed: ${error.message}`;
@@ -540,114 +428,29 @@ export class SocietyManagementComponent implements OnInit {
     });
   }
 
+  private router = inject(Router);
+
   openOnboardingModal() {
-    this.saveError = '';
-    this.logoFile = null;
-    this.bannerFile = null;
-    this.onboardingForm.reset({
-      name: '',
-      code: '',
-      requestedSubdomain: '',
-      federationId: null,
-      description: '',
-      address: '',
-      city: '',
-      state: '',
-      country: '',
-      pincode: '',
-      isTownship: false
-    });
-    this.showOnboardingModal = true;
-  }
-
-  closeOnboardingModal() {
-    this.showOnboardingModal = false;
-  }
-
-  onFileSelected(event: Event, type: 'logo' | 'banner') {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] || null;
-
-    if (type === 'logo') {
-      this.logoFile = file;
-    } else {
-      this.bannerFile = file;
-    }
-  }
-
-  submitOnboarding() {
-    if (this.onboardingForm.invalid) {
-      this.onboardingForm.markAllAsTouched();
-      this.saveError = 'Please correct form validation errors before submitting.';
-      return;
-    }
-
-    const formValue = this.onboardingForm.getRawValue();
-
-    // Parse amenities
-    const amenities = (formValue.amenitiesInput || '')
-      .split(',')
-      .map(s => s.trim())
-      .filter(s => !!s);
-
-    const request: SocietyOnboardingRequest = {
-      name: (formValue.name || '').trim(),
-      code: (formValue.code || '').trim().toUpperCase(),
-      federationId: formValue.federationId ?? null,
-      requestedSubdomain: (formValue.requestedSubdomain || '').trim().toLowerCase(),
-      description: (formValue.description || '').trim(),
-      address: (formValue.address || '').trim(),
-      city: (formValue.city || '').trim(),
-      state: (formValue.state || '').trim(),
-      country: (formValue.country || '').trim(),
-      pincode: (formValue.pincode || '').trim(),
-      totalBuildings: formValue.totalBuildings || 0,
-      totalFlats: formValue.totalFlats || 0,
-      amenities: amenities,
-      isTownship: !!formValue.isTownship
-    };
-
-    this.saveLoading = true;
-    this.saveError = '';
-
-    this.platformService.createSociety(request, this.logoFile, this.bannerFile).subscribe({
-      next: created => {
-        this.saveLoading = false;
-        this.closeOnboardingModal();
-        this.successMessage = `Society onboarded successfully: ${created.name}`;
-        this.loadSocieties();
-        setTimeout(() => this.successMessage = '', 3000);
-      },
-      error: (error: ApiError) => {
-        this.saveLoading = false;
-        this.saveError = `Onboarding failed: ${error.message}`;
-      }
-    });
+    this.router.navigate(['/platform/societies/create']);
   }
 
   viewDetails(society: Society) {
-    this.detailsLoading = true;
-    this.platformService.getSociety(society.id).subscribe({
-      next: (detailed: Society) => {
-        this.selectedSociety = detailed;
-        this.showDetailsModal = true;
-        this.detailsLoading = false;
-      },
-      error: (err: ApiError) => {
-        this.detailsLoading = false;
-        this.listError = `Failed to load details: ${err.message}`;
-      }
-    });
+    this.router.navigate(['/platform/societies', society.id]);
   }
 
-  closeDetailsModal() {
-    this.showDetailsModal = false;
-    this.selectedSociety = null;
+  editSociety(society: Society) {
+    // Add query param so wizard knows to load existing society data
+    this.router.navigate(['/platform/societies/create'], { queryParams: { id: society.id } });
   }
 
-  openAdminModal() {
+  resumeOnboarding(society: Society) {
+    this.router.navigate(['/platform/societies/create'], { queryParams: { id: society.id, resume: true } });
+  }
+
+  openAdminModal(society: Society) {
+    this.selectedSociety = society;
     this.adminError = '';
-    this.adminForm.reset();
+    this.adminForm.reset({ passwordOption: 'mail' });
     this.showAdminModal = true;
   }
 
@@ -661,7 +464,19 @@ export class SocietyManagementComponent implements OnInit {
     this.adminLoading = true;
     this.adminError = '';
 
-    this.platformService.assignSocietyAdmin(this.selectedSociety.id, this.adminForm.value).subscribe({
+    const formVal = this.adminForm.value;
+    const request = {
+      societyId: this.selectedSociety.id,
+      firstName: formVal.firstName,
+      lastName: formVal.lastName,
+      email: formVal.email,
+      mobile: formVal.mobile,
+      username: formVal.username,
+      sendPasswordViaEmail: formVal.passwordOption === 'mail',
+      password: formVal.passwordOption === 'manual' ? formVal.password : null
+    };
+
+    this.platformService.assignSocietyAdminStep(request).subscribe({
       next: () => {
         this.adminLoading = false;
         this.closeAdminModal();
