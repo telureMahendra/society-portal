@@ -1,0 +1,236 @@
+<div class="config-container" style="padding: 20px; max-width: 1200px; margin: 0 auto; font-family: 'Inter', sans-serif;">
+  
+  <div style="display: flex; align-items: center; margin-bottom: 2rem;">
+    <button (click)="goBack()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b; margin-right: 1rem; transition: color 0.2s;">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <div>
+      <h2 style="margin: 0; font-size: 1.8rem; font-weight: 700; color: #1e293b;">Request Details #{{requestDetails?.id}}</h2>
+      <p style="margin: 0.2rem 0 0 0; color: #64748b;">Review full configuration and documents</p>
+    </div>
+  </div>
+
+  <div *ngIf="loading" style="text-align: center; padding: 4rem;">
+    <i class="fas fa-circle-notch fa-spin" style="font-size: 2.5rem; color: #3b82f6;"></i>
+    <p style="margin-top: 1rem; color: #64748b;">Loading details...</p>
+  </div>
+
+  <div *ngIf="error" style="background: #fef2f2; border: 1px solid #fecaca; color: #ef4444; padding: 1rem; border-radius: 8px;">
+    {{error}}
+  </div>
+
+  <div *ngIf="!loading && requestDetails" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    
+    <!-- Left Column: Config Details -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      
+      <!-- Basic Info -->
+      <div class="glass-card" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0; margin-bottom: 1.2rem; font-size: 1.2rem; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
+          <i class="fas fa-building" style="color: #3b82f6; margin-right: 0.5rem;"></i> Entity Information
+        </h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Entity Name</label>
+            <div style="font-weight: 500; color: #1e293b;">{{requestDetails.societyName || requestDetails.federationName}}</div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Status</label>
+            <div style="font-weight: 700; color: #0284c7;">{{requestDetails.status}}</div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Submitted At</label>
+            <div style="color: #1e293b;">{{requestDetails.submittedAt | date:'medium'}}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Razorpay Config -->
+      <div class="glass-card" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0; margin-bottom: 1.2rem; font-size: 1.2rem; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
+          <i class="fas fa-cog" style="color: #8b5cf6; margin-right: 0.5rem;"></i> Razorpay Configuration
+        </h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;">
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Gateway</label>
+            <div style="font-weight: 500; color: #1e293b;">{{requestDetails.configuration?.gatewayProvider}}</div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Key ID</label>
+            <div style="font-family: monospace; background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 4px; display: inline-block;">{{requestDetails.configuration?.keyId}}</div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Business Name</label>
+            <div style="color: #1e293b;">{{requestDetails.configuration?.businessName}}</div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Legal Entity Name</label>
+            <div style="color: #1e293b;">{{requestDetails.configuration?.legalEntityName}}</div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">PAN Number</label>
+            <div style="color: #1e293b;">{{requestDetails.configuration?.panNumber}}</div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">GST Number</label>
+            <div style="color: #1e293b;">{{requestDetails.configuration?.gstNumber || 'N/A'}}</div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Reg. Mobile</label>
+            <div style="color: #1e293b;">{{requestDetails.configuration?.registeredMobileNumber}}</div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Reg. Email</label>
+            <div style="color: #1e293b;">{{requestDetails.configuration?.registeredEmail}}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settlement Info -->
+      <div class="glass-card" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0; margin-bottom: 1.2rem; font-size: 1.2rem; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
+          <i class="fas fa-university" style="color: #10b981; margin-right: 0.5rem;"></i> Settlement Bank Details
+        </h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;">
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Account Holder</label>
+            <div style="color: #1e293b;">{{requestDetails.configuration?.accountHolderName}}</div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Bank Name</label>
+            <div style="color: #1e293b;">{{requestDetails.configuration?.bankName}}</div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Account Number</label>
+            <div style="font-family: monospace; font-size: 1.1rem; color: #1e293b;">{{requestDetails.configuration?.accountNumber}}</div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">IFSC Code</label>
+            <div style="font-family: monospace; color: #1e293b;">{{requestDetails.configuration?.ifscCode}}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Documents and Actions -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      
+      <div class="glass-card" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0; margin-bottom: 1.2rem; font-size: 1.2rem; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
+          <i class="fas fa-file-upload" style="color: #f59e0b; margin-right: 0.5rem;"></i> Verification Documents
+        </h3>
+        
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          
+          <a [href]="formatUrl(requestDetails.panCardUrl)" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #0f172a; transition: all 0.2s; background: #f8fafc;">
+            <i class="fas fa-id-card" style="font-size: 1.5rem; color: #3b82f6; margin-right: 1rem;"></i>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: 0.95rem;">PAN Card</div>
+              <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">{{requestDetails.panCardUrl}}</div>
+            </div>
+            <i class="fas fa-external-link-alt" style="color: #cbd5e1;"></i>
+          </a>
+          
+          <a [href]="formatUrl(requestDetails.gstCertificateUrl)" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #0f172a; transition: all 0.2s; background: #f8fafc;">
+            <i class="fas fa-file-invoice" style="font-size: 1.5rem; color: #8b5cf6; margin-right: 1rem;"></i>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: 0.95rem;">GST Certificate</div>
+              <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">{{requestDetails.gstCertificateUrl || 'Not provided'}}</div>
+            </div>
+            <i class="fas fa-external-link-alt" style="color: #cbd5e1;"></i>
+          </a>
+
+          <a [href]="formatUrl(requestDetails.cancelledChequeUrl)" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #0f172a; transition: all 0.2s; background: #f8fafc;">
+            <i class="fas fa-money-check-alt" style="font-size: 1.5rem; color: #10b981; margin-right: 1rem;"></i>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: 0.95rem;">Cancelled Cheque</div>
+              <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">{{requestDetails.cancelledChequeUrl}}</div>
+            </div>
+            <i class="fas fa-external-link-alt" style="color: #cbd5e1;"></i>
+          </a>
+
+          <a [href]="formatUrl(requestDetails.merchantProofUrl)" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; color: #0f172a; transition: all 0.2s; background: #f8fafc;">
+            <i class="fas fa-store" style="font-size: 1.5rem; color: #f59e0b; margin-right: 1rem;"></i>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: 0.95rem;">Merchant Proof</div>
+              <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">{{requestDetails.merchantProofUrl}}</div>
+            </div>
+            <i class="fas fa-external-link-alt" style="color: #cbd5e1;"></i>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <div *ngIf="requestDetails.status === 'SUBMITTED' || requestDetails.status === 'UNDER_REVIEW'" class="glass-card" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-top: 4px solid #3b82f6;">
+        <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.2rem; color: #0f172a;">Decision</h3>
+        <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.5rem;">Carefully review all configurations and documents before taking an action.</p>
+        
+        <div style="display: flex; gap: 1rem; flex-direction: column;">
+          <button (click)="openActionModal('approve')" style="width: 100%; padding: 0.8rem; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <i class="fas fa-check" style="margin-right: 8px;"></i> Approve Configuration
+          </button>
+          <button (click)="openActionModal('reject')" style="width: 100%; padding: 0.8rem; background-color: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <i class="fas fa-times" style="margin-right: 8px;"></i> Reject Configuration
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Beautiful Action Modal -->
+  <div *ngIf="showActionModal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    
+    <div style="background: white; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); overflow: hidden; animation: slideIn 0.3s ease-out;">
+      
+      <!-- Modal Header -->
+      <div style="padding: 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #0f172a;">
+          {{ actionType === 'approve' ? 'Approve Request' : 'Reject Request' }}
+        </h3>
+        <button (click)="closeActionModal()" style="background: transparent; border: none; font-size: 1.25rem; color: #64748b; cursor: pointer; transition: color 0.2s;">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="padding: 1.5rem;">
+        <p style="margin-top: 0; margin-bottom: 1rem; color: #475569; font-size: 0.95rem;">
+          {{ actionType === 'approve' ? 'Are you sure you want to approve this payment configuration?' : 'Please provide a reason for rejecting this payment configuration.' }}
+        </p>
+
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;">
+            Remarks {{ actionType === 'reject' ? '(Required)' : '(Optional)' }}
+          </label>
+          <textarea 
+            [(ngModel)]="remarks" 
+            rows="4" 
+            placeholder="Enter your remarks here..." 
+            style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.95rem; resize: vertical; focus: outline-none; focus: border-blue-500;"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="padding: 1.5rem; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 1rem; background: #f8fafc;">
+        <button (click)="closeActionModal()" [disabled]="isSubmitting" style="padding: 0.6rem 1.2rem; background: white; border: 1px solid #cbd5e1; color: #475569; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+          Cancel
+        </button>
+        <button 
+          (click)="confirmAction()" 
+          [disabled]="isSubmitting || (actionType === 'reject' && !remarks.trim())" 
+          [ngStyle]="{'background': actionType === 'approve' ? '#10b981' : '#ef4444', 'opacity': isSubmitting || (actionType === 'reject' && !remarks.trim()) ? '0.6' : '1'}"
+          style="padding: 0.6rem 1.2rem; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fas fa-circle-notch fa-spin" *ngIf="isSubmitting"></i>
+          {{ actionType === 'approve' ? 'Confirm Approval' : 'Confirm Rejection' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

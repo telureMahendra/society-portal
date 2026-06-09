@@ -40,6 +40,12 @@ import { RouterModule } from '@angular/router';
               <span>Monitoring</span>
             </a>
           </li>
+          <li>
+            <a routerLink="/platform/requests/payment-configuration" routerLinkActive="active">
+              <i class="fas fa-file-invoice-dollar"></i>
+              <span>Payment Requests</span>
+            </a>
+          </li>
         </ul>
       </nav>
       

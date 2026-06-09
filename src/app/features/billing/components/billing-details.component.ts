@@ -55,9 +55,9 @@ import html2canvas from 'html2canvas';
         <div class="invoice-meta">
           <div class="meta-section">
             <span class="meta-label">Billed To:</span>
-            <strong>Owner / Tenant</strong>
-            <p>Flat Number: {{ getFlatDisplay(bill.unitId) }}</p>
-            <p>Society ID: {{ bill.societyId }}</p>
+            <strong>{{ bill.ownerName || 'Owner / Tenant' }}</strong>
+            <p>Unit Details: {{ bill.flatDisplay || getFlatDisplay(bill.unitId) }}</p>
+            <p>Society Reg No: {{ bill.societyRegNo || bill.societyId }}</p>
           </div>
           <div class="meta-section right">
             <div class="meta-row">
@@ -103,6 +103,27 @@ import html2canvas from 'html2canvas';
           </table>
         </div>
 
+        <!-- Payment Details -->
+        <div class="invoice-items" *ngIf="bill.paymentMode && bill.paymentMode !== 'N/A'">
+          <table>
+            <thead>
+              <tr>
+                <th colspan="2">Payment Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Payment Method:</strong></td>
+                <td class="amount-col">{{ bill.paymentMode }}</td>
+              </tr>
+              <tr>
+                <td><strong>Transaction Reference:</strong></td>
+                <td class="amount-col">{{ bill.transactionRef }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         <!-- Summary -->
         <div class="invoice-summary">
           <div class="summary-row">
@@ -122,6 +143,7 @@ import html2canvas from 'html2canvas';
         <div class="invoice-footer">
           <p>Thank you for your timely payment!</p>
           <p class="small">If you have any questions regarding this invoice, please contact the society admin.</p>
+          <p class="small" style="margin-top: 16px; font-weight: bold;">*** This is a computer generated invoice and requires no signature. ***</p>
         </div>
       </div>
     </div>
@@ -149,8 +171,8 @@ import html2canvas from 'html2canvas';
     .meta-section.right { align-items: flex-end; }
     .meta-label { color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
     .meta-section p { margin: 0; font-size: 14px; color: #475569; }
-    .meta-row { display: flex; gap: 16px; justify-content: flex-end; width: 250px; font-size: 14px; }
-    .meta-row .meta-label { margin-bottom: 0; width: 120px; text-align: right; }
+    .meta-row { display: flex; gap: 16px; justify-content: flex-end; width: 300px; font-size: 14px; }
+    .meta-row .meta-label { margin-bottom: 0; width: 130px; text-align: right; }
     .due-date { font-weight: 600; color: #dc2626; }
     .invoice-items table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
     .invoice-items th { background: #f8fafc; padding: 12px 16px; text-align: left; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0; }

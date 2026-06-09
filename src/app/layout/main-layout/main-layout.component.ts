@@ -17,10 +17,12 @@ import { inject } from '@angular/core';
       <div class="content-wrapper">
         <app-sidebar class="sidebar"></app-sidebar>
         <main class="main-content">
-          <router-outlet></router-outlet>
+          <div class="page-content">
+            <router-outlet></router-outlet>
+          </div>
+          <app-footer></app-footer>
         </main>
       </div>
-      <app-footer></app-footer>
     </div>
   `,
   styles: [`
@@ -63,10 +65,17 @@ import { inject } from '@angular/core';
 
     .main-content {
       flex: 1;
-      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
       overflow-y: auto;
       background-color: var(--background-color, #f8fafc);
       transition: all 0.3s ease;
+      padding: 0;
+    }
+
+    .page-content {
+      flex: 1;
+      padding: 2.5rem;
     }
   `]
 })

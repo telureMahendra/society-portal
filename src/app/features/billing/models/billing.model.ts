@@ -37,6 +37,11 @@ export interface BillingRecord {
   paidAmount: number;
   paymentDate?: string;
   createdAt?: string;
+  ownerName?: string;
+  flatDisplay?: string;
+  societyRegNo?: string;
+  paymentMode?: string;
+  transactionRef?: string;
 }
 
 export interface AddonBill {

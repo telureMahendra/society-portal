@@ -1,65 +1,64 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
 import { Payment } from '../models/payment.model';
+import { environment } from '../../../environments/environment';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class PaymentService {
-    private mockPayments: Payment[] = [
-        {
-            id: 1,
-            transactionId: 'TXN-987654321',
-            invoiceId: 'INV-2024-001',
-            residentName: 'Mahendra Telure',
-            unitNumber: 'Flat 502',
-            amount: 4500,
-            paymentDate: '2024-03-05T10:30:00Z',
-            paymentMethod: 'UPI',
-            status: 'COMPLETED',
-            receiptUrl: '#'
-        },
-        {
-            id: 2,
-            transactionId: 'TXN-987654322',
-            invoiceId: 'INV-2024-010',
-            residentName: 'Alice Johnson',
-            unitNumber: 'Flat 101',
-            amount: 4200,
-            paymentDate: '2024-03-06T14:20:00Z',
-            paymentMethod: 'CARD',
-            status: 'COMPLETED',
-            receiptUrl: '#'
-        },
-        {
-            id: 3,
-            transactionId: 'TXN-987654323',
-            invoiceId: 'INV-2024-015',
-            residentName: 'Bob Smith',
-            unitNumber: 'Flat 203',
-            amount: 4800,
-            paymentDate: '2024-03-07T09:15:00Z',
-            paymentMethod: 'NET_BANKING',
-            status: 'FAILED'
-        },
-        {
-            id: 4,
-            transactionId: 'TXN-987654324',
-            invoiceId: 'INV-2024-020',
-            residentName: 'Charlie Brown',
-            unitNumber: 'Flat 305',
-            amount: 4200,
-            paymentDate: '2024-03-08T11:45:00Z',
-            paymentMethod: 'UPI',
-            status: 'PENDING'
-        }
-    ];
+
+    constructor(private http: HttpClient, private authService: AuthService) {}
 
     getPayments(): Observable<Payment[]> {
-        return of(this.mockPayments);
+        const user = this.authService.currentUserValue;
+        const societyId = user?.societyId || 1;
+        const isAdmin = user?.roles?.includes('SOCIETY_ADMIN') || user?.roles?.includes('PLATFORM_ADMIN') || user?.globalRole === 'PLATFORM_ADMIN';
+        
+        const payload = { societyId: societyId, page: 0, size: 100, sortBy: 'createdAt', sortDirection: 'DESC' };
+        
+        const endpoint = isAdmin ? '/admin/payments/history' : '/user/payments/history';
+        
+        return this.http.post<any>(`${environment.apiBaseUrl}${endpoint}`, payload).pipe(
+            map(response => {
+                if (response && response.content) {
+                    return response.content.map((dto: any) => this.mapDtoToPayment(dto));
+                }
+                return [];
+            })
+        );
     }
 
     getPaymentById(id: number): Observable<Payment | undefined> {
-        return of(this.mockPayments.find(p => p.id === id));
+        const user = this.authService.currentUserValue;
+        const societyId = user?.societyId || 1;
+        const isAdmin = user?.roles?.includes('SOCIETY_ADMIN') || user?.roles?.includes('PLATFORM_ADMIN') || user?.globalRole === 'PLATFORM_ADMIN';
+        
+        const payload = { paymentId: id, societyId: societyId };
+        
+        const endpoint = isAdmin ? '/admin/payments/details' : '/user/payments/details';
+        
+        return this.http.post<any>(`${environment.apiBaseUrl}${endpoint}`, payload).pipe(
+            map(dto => this.mapDtoToPayment(dto))
+        );
+    }
+
+    private mapDtoToPayment(dto: any): Payment {
+        return {
+            id: dto.id,
+            transactionId: dto.transactionRef || 'N/A',
+            invoiceId: dto.billNumber || 'N/A',
+            residentName: dto.residentName || 'N/A',
+            unitNumber: dto.unitNumber || 'N/A',
+            amount: dto.amount || 0,
+            paymentDate: dto.paidAt || dto.createdAt,
+            paymentMethod: dto.paymentMode || 'N/A',
+            status: dto.paymentStatus === 'SUCCESS' ? 'COMPLETED' : 
+                    dto.paymentStatus === 'FAILED' ? 'FAILED' : 'PENDING',
+            receiptUrl: dto.paymentStatus === 'SUCCESS' ? '#' : undefined
+        } as Payment;
     }
 }

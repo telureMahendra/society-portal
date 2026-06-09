@@ -23,7 +23,9 @@ export const PLATFORM_ADMIN_ROUTES: Routes = [
             { path: 'societies/create', component: SocietyOnboardingWizard },
             { path: 'societies/:id', component: SocietyDetails },
             { path: 'subdomains', component: SubdomainManagerComponent },
-            { path: 'monitoring', component: PlatformMonitoringComponent }
+            { path: 'monitoring', component: PlatformMonitoringComponent },
+            { path: 'requests/payment-configuration', loadComponent: () => import('./requests/payment-configuration/payment-config-requests.component').then(m => m.PaymentConfigRequestsComponent) },
+            { path: 'requests/payment-configuration/:id', loadComponent: () => import('./requests/payment-configuration/details/payment-config-request-details.component').then(m => m.PaymentConfigRequestDetailsComponent) }
         ]
     }
 ];

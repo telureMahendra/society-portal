@@ -79,6 +79,12 @@ import { RouterModule } from '@angular/router';
                   <span>Complaint Categories</span>
                 </a>
               </li>
+              <li>
+                <a routerLink="/configuration/payment" routerLinkActive="active">
+                  <i class="fas fa-credit-card"></i>
+                  <span>Payment Configuration</span>
+                </a>
+              </li>
             </ul>
           </li>
         </ul>
@@ -92,6 +98,7 @@ import { RouterModule } from '@angular/router';
       border-right: 1px solid #e2e8f0;
       height: 100%;
       padding: 1.5rem 0;
+      overflow-y: auto;
     }
 
     .nav-menu {

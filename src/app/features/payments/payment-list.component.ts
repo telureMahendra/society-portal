@@ -16,8 +16,8 @@ import { Payment } from '../../core/models/payment.model';
           <p>Track all received maintenance and utility payments</p>
         </div>
         <div class="header-actions">
-          <button class="btn btn-outline"><i class="fas fa-download"></i> Export Excel</button>
-          <button class="btn btn-primary"><i class="fas fa-print"></i> Print Report</button>
+          <button class="btn btn-outline" (click)="exportExcel()"><i class="fas fa-download"></i> Export CSV</button>
+          <button class="btn btn-primary" (click)="printReport()"><i class="fas fa-print"></i> Print Report</button>
         </div>
       </header>
 
@@ -25,17 +25,17 @@ import { Payment } from '../../core/models/payment.model';
       <div class="stats-bar glass-card">
         <div class="stat-item">
           <span class="label">Total Received</span>
-          <span class="value">₹ 7.5L</span>
+          <span class="value">₹{{ totalReceived | number }}</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
           <span class="label">Transactions</span>
-          <span class="value">142</span>
+          <span class="value">{{ totalTransactions | number }}</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
           <span class="label">Refunded</span>
-          <span class="value warning">₹ 12,400</span>
+          <span class="value warning">₹{{ totalRefunded | number }}</span>
         </div>
       </div>
 
@@ -99,10 +99,10 @@ import { Payment } from '../../core/models/payment.model';
                 </span>
               </td>
               <td class="actions-cell">
-                <button class="icon-btn" title="View Receipt" *ngIf="payment.status === 'COMPLETED'">
+                <button class="icon-btn" title="View Receipt" *ngIf="payment.status === 'COMPLETED'" (click)="viewReceipt(payment)">
                   <i class="fas fa-file-invoice"></i>
                 </button>
-                <button class="icon-btn" title="View Details"><i class="fas fa-info-circle"></i></button>
+                <button class="icon-btn" title="View Details" (click)="viewDetails(payment)"><i class="fas fa-info-circle"></i></button>
               </td>
             </tr>
             <tr *ngIf="filteredPayments.length === 0">
@@ -113,6 +113,110 @@ import { Payment } from '../../core/models/payment.model';
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Receipt Modal -->
+      <div class="modal-backdrop" *ngIf="showReceiptModal" (click)="closeModals()">
+        <div class="modal-content receipt-modal animate-up" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>Payment Receipt</h2>
+            <button class="close-btn" (click)="closeModals()"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="modal-body" *ngIf="selectedPayment">
+            <div class="receipt-header">
+              <div class="receipt-logo">
+                <i class="fas fa-building"></i>
+              </div>
+              <div class="receipt-title">
+                <h3>Gokuldham Society</h3>
+                <p>Payment Receipt</p>
+              </div>
+            </div>
+            
+            <div class="receipt-details">
+              <div class="detail-row">
+                <span class="label">Date:</span>
+                <span class="value">{{ selectedPayment.paymentDate | date:'medium' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Transaction ID:</span>
+                <span class="value">{{ selectedPayment.transactionId }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Invoice No:</span>
+                <span class="value">{{ selectedPayment.invoiceId }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Resident:</span>
+                <span class="value">{{ selectedPayment.residentName }} ({{ selectedPayment.unitNumber }})</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Payment Method:</span>
+                <span class="value">{{ selectedPayment.paymentMethod }}</span>
+              </div>
+            </div>
+
+            <div class="receipt-amount">
+              <span class="label">Total Amount Paid</span>
+              <span class="amount">₹{{ selectedPayment.amount | number }}</span>
+            </div>
+
+            <div class="receipt-footer">
+              <p>Thank you for your payment!</p>
+              <button class="btn btn-primary" (click)="printReceipt()"><i class="fas fa-print"></i> Print</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Details Modal -->
+      <div class="modal-backdrop" *ngIf="showDetailsModal" (click)="closeModals()">
+        <div class="modal-content details-modal animate-up" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>Transaction Details</h2>
+            <button class="close-btn" (click)="closeModals()"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="modal-body" *ngIf="selectedPayment">
+            <div class="status-banner" [class]="selectedPayment.status.toLowerCase()">
+              <i class="fas" [ngClass]="{'fa-check-circle': selectedPayment.status === 'COMPLETED', 'fa-clock': selectedPayment.status === 'PENDING', 'fa-times-circle': selectedPayment.status === 'FAILED'}"></i>
+              <span>Payment {{ selectedPayment.status | titlecase }}</span>
+            </div>
+            
+            <div class="details-grid">
+              <div class="detail-item">
+                <span class="label">Resident Name</span>
+                <span class="value">{{ selectedPayment.residentName }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Unit</span>
+                <span class="value">{{ selectedPayment.unitNumber }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Amount</span>
+                <span class="value font-bold text-primary">₹{{ selectedPayment.amount | number }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Transaction ID</span>
+                <span class="value font-mono">{{ selectedPayment.transactionId }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Invoice ID</span>
+                <span class="value">{{ selectedPayment.invoiceId }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Date & Time</span>
+                <span class="value">{{ selectedPayment.paymentDate | date:'medium' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Payment Method</span>
+                <span class="value">
+                  <i class="fas" [ngClass]="getMethodIcon(selectedPayment.paymentMethod)"></i>
+                  {{ selectedPayment.paymentMethod }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   `,
@@ -148,7 +252,7 @@ import { Payment } from '../../core/models/payment.model';
       i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
       input {
         width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border: 1px solid #e2e8f0; border-radius: 0.75rem;
-        font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+        font-size: 0.95rem; outline: none; transition: border-color 0.2s; box-sizing: border-box;
         &:focus { border-color: var(--primary-color, #2563eb); }
       }
     }
@@ -217,6 +321,50 @@ import { Payment } from '../../core/models/payment.model';
 
     .animate-up { animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Modal Styles */
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: white; border-radius: 1.25rem; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); overflow: hidden; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+    .modal-header h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #1e293b; }
+    .close-btn { background: none; border: none; color: #64748b; font-size: 1.25rem; cursor: pointer; padding: 0.5rem; border-radius: 0.5rem; transition: all 0.2s; }
+    .close-btn:hover { background: #e2e8f0; color: #0f172a; }
+    .modal-body { padding: 1.5rem; }
+
+    /* Receipt Specific Styles */
+    .receipt-header { text-align: center; margin-bottom: 2rem; }
+    .receipt-logo { display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: #eff6ff; color: #2563eb; border-radius: 50%; font-size: 1.5rem; margin-bottom: 1rem; }
+    .receipt-title h3 { margin: 0 0 0.25rem 0; color: #1e293b; font-size: 1.25rem; font-weight: 700; }
+    .receipt-title p { margin: 0; color: #64748b; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+    
+    .receipt-details { background: #f8fafc; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px dashed #cbd5e1; }
+    .detail-row { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.9375rem; }
+    .detail-row:last-child { margin-bottom: 0; }
+    .detail-row .label { color: #64748b; }
+    .detail-row .value { color: #1e293b; font-weight: 600; text-align: right; }
+
+    .receipt-amount { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: #eff6ff; border-radius: 1rem; margin-bottom: 2rem; }
+    .receipt-amount .label { color: #1d4ed8; font-weight: 600; font-size: 1.1rem; }
+    .receipt-amount .amount { color: #1d4ed8; font-weight: 800; font-size: 1.5rem; }
+
+    .receipt-footer { text-align: center; }
+    .receipt-footer p { color: #64748b; margin-bottom: 1rem; font-size: 0.875rem; }
+    .receipt-footer button { width: 100%; justify-content: center; }
+
+    /* Details Modal Styles */
+    .status-banner { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.5rem; border-radius: 0.75rem; margin-bottom: 1.5rem; font-weight: 600; font-size: 1.1rem; }
+    .status-banner.completed { background: #dcfce7; color: #166534; }
+    .status-banner.pending { background: #fef9c3; color: #854d0e; }
+    .status-banner.failed { background: #fee2e2; color: #991b1b; }
+    .status-banner.refunded { background: #f1f5f9; color: #475569; }
+
+    .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .detail-item { display: flex; flex-direction: column; gap: 0.25rem; }
+    .detail-item .label { font-size: 0.8125rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+    .detail-item .value { font-size: 1rem; color: #1e293b; font-weight: 500; }
+    .font-mono { font-family: monospace; }
+    .font-bold { font-weight: 700 !important; }
+    .text-primary { color: #2563eb !important; }
   `]
 })
 export class PaymentListComponent implements OnInit {
@@ -226,14 +374,35 @@ export class PaymentListComponent implements OnInit {
   currentFilter: string = 'all';
   statusFilters: string[] = ['all', 'completed', 'pending', 'failed', 'refunded'];
 
+  // Modal State
+  selectedPayment: Payment | null = null;
+  showReceiptModal: boolean = false;
+  showDetailsModal: boolean = false;
+
+  // Stats
+  totalReceived: number = 0;
+  totalTransactions: number = 0;
+  totalRefunded: number = 0;
+
   constructor(private paymentService: PaymentService, private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
     this.paymentService.getPayments().subscribe(payments => {
       this.payments = payments;
       this.applyFilters();
+      this.calculateStats();
       this.cdr.detectChanges();
     });
+  }
+
+  calculateStats(): void {
+    this.totalTransactions = this.payments.length;
+    this.totalReceived = this.payments
+      .filter(p => p.status === 'COMPLETED')
+      .reduce((sum, p) => sum + p.amount, 0);
+    this.totalRefunded = this.payments
+      .filter(p => p.status === 'REFUNDED')
+      .reduce((sum, p) => sum + p.amount, 0);
   }
 
   setFilter(filter: string): void {
@@ -267,5 +436,57 @@ export class PaymentListComponent implements OnInit {
       case 'CHEQUE': return 'fa-money-check';
       default: return 'fa-exchange-alt';
     }
+  }
+
+  viewReceipt(payment: Payment): void {
+    this.selectedPayment = payment;
+    this.showReceiptModal = true;
+    this.showDetailsModal = false;
+  }
+
+  viewDetails(payment: Payment): void {
+    this.selectedPayment = payment;
+    this.showDetailsModal = true;
+    this.showReceiptModal = false;
+  }
+
+  closeModals(): void {
+    this.showReceiptModal = false;
+    this.showDetailsModal = false;
+    this.selectedPayment = null;
+  }
+
+  printReceipt(): void {
+    window.print();
+  }
+
+  printReport(): void {
+    window.print();
+  }
+
+  exportExcel(): void {
+    const headers = ['Date', 'Resident', 'Unit', 'Transaction ID', 'Method', 'Amount', 'Status'];
+    const csvData = this.filteredPayments.map(p => {
+      return [
+        new Date(p.paymentDate).toLocaleDateString(),
+        `"${p.residentName}"`,
+        p.unitNumber,
+        p.transactionId,
+        p.paymentMethod,
+        p.amount,
+        p.status
+      ].join(',');
+    });
+    
+    const csvContent = [headers.join(','), ...csvData].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'payment_history.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }

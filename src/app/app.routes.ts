@@ -62,6 +62,12 @@ export const routes: Routes = [
                 ]
             },
             {
+                path: 'configuration',
+                children: [
+                    { path: 'payment', loadComponent: () => import('./features/configuration/payment-configuration/payment-configuration.component').then(m => m.PaymentConfigurationComponent) }
+                ]
+            },
+            {
                 path: 'complaint-categories',
                 loadComponent: () => import('./features/complaints/categories/category-config.component').then(m => m.CategoryConfigComponent)
             },
