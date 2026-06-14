@@ -256,13 +256,13 @@ export class BillingDetailsComponent implements OnInit {
       const element = this.invoiceContent.nativeElement;
       const canvas = await html2canvas(element, { scale: 2 });
       
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/jpeg', 0.8);
       const pdf = new jsPDF('p', 'mm', 'a4');
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`${this.bill.invoiceNumber}.pdf`);
     } catch (error) {
       console.error('Error generating PDF', error);
